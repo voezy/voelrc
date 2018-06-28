@@ -13,14 +13,14 @@
 
           <!-- 歌曲设置组件 -->
           <keep-alive>
-            <setting @update-info="songInfo = $event" />
+            <setting @update-info="songSetting = $event" />
           </keep-alive>
         </div>
       </transition>
 
       <!-- 歌词编辑块容器 -->
       <div class="main-maker">
-        <editor @setting="isSetting = !isSetting" :songInfo="songInfo"/>
+        <editor @setting="isSetting = !isSetting" :songSetting="songSetting"/>
       </div>
     </div>
   </div>
@@ -35,7 +35,7 @@ export default {
   data () {
     return {
       isSetting: true,
-      songInfo: undefined
+      songSetting: undefined
     }
   },
   components: {

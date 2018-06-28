@@ -3,7 +3,7 @@
   <div class="maker-wrp">
     <!-- 播放器容器 -->
     <div class="player-wrp">
-      <aplayer :music="music" :showLrc="true">
+      <aplayer  v-if="showPlayer" :music="music" :showLrc="true">
       </aplayer>
     </div>
 
@@ -67,21 +67,24 @@
 </template>
 
 <script>
+import axios from 'axios'
 import Aplayer from 'vue-aplayer'
 import utils from '../js/util/utils.js'
+import conf from '../../config/conf.js'
 Aplayer.disableVersionBadge = true // Do not print version info to console.
 
 export default {
-  props: ['songInfo'],
+  props: ['songSetting'],
   data () {
     return {
-      lyric: ''
+      lyric: '',
+      showPlayer: true
     }
   },
   computed: {
     // 注意aplayer会对misic对象各个参数进行非空验证
     music: function () {
-      return this.getMusic(this.songInfo)
+      return this.getMusic(this.songSetting)
     }
   },
   components: {
@@ -90,22 +93,76 @@ export default {
   methods: {
     // 移动端将不显示按钮功能提示文字
     isMobile: utils.isMobile,
-    getMusic (songInfo) {
-      console.log('正在获取歌曲 ' + songInfo + ' 的信息')
-      if (songInfo) {
-        return {
-          title: '没有歌曲',
-          artist: '歌手',
-          src: 'none',
-          pic: 'none'
+    getMusic (songSetting) {
+      let APIServer = conf.APIServer
+      let music = {
+        title: '没有歌曲',
+        artist: '歌手',
+        src: 'null',
+        pic: 'null'
+      }
+
+      // 修改showPlayer销毁播放器以便利用新数据重新创建
+      this.showPlayer = false
+      // console.log('正在获取来自 ' + songSetting.source + ' 的歌曲信息')
+
+      // 从歌曲网易云链接中提取歌曲id
+      const getID = () => {}
+      // 获取歌曲源url
+      const getSrc = () => {
+        return axios.get(APIServer + '/music/url?id=' + songSetting.ncmid)
+          .then(res => {
+            // console.log('获取到歌曲的src url：' + res.data.data[0].url)
+            music.src = res.data.data[0].url
+          })
+          .catch(err => {
+            console.log(err)
+          })
+      }
+
+      // 获取歌曲信息(名称、歌手和专辑图片)
+      const getInfo = () => {
+        return axios.get(APIServer + '/song/detail?ids=' + songSetting.ncmid)
+          .then(res => {
+            const mergeAr = (former, after) => former.name + ', ' + after.name
+            // console.log('获取到歌曲的名称：' + res.data.songs[0].name)
+            // console.log('获取到专辑的图片：' + res.data.songs[0].al.picUrl)
+            // console.log('获取到歌手的名称：' + res.data.songs[0].ar.reduce(mergeAr))
+
+            music.title = res.data.songs[0].name
+            music.artist = res.data.songs[0].ar.reduce(mergeAr)
+            music.pic = res.data.songs[0].al.picUrl
+          })
+          .catch(err => {
+            console.log(err)
+          })
+      }
+
+      if (songSetting && songSetting.source) {
+        switch (songSetting.source) {
+          case 'ncmlink': {
+            return music
+          }
+          case 'ncmid': {
+            let that = this
+
+            axios.all([getSrc(), getInfo()])
+              .then(axios.spread(function (acct, perms) {
+                // 两个请求现在都执行完成
+                that.showPlayer = true
+              }))
+            return music
+          }
+          case 'linkfile': {
+            return music
+          }
+          default: {
+            return music
+          }
         }
       } else {
-        return {
-          title: '没有歌曲',
-          artist: '歌手',
-          src: 'none',
-          pic: 'none'
-        }
+        this.showPlayer = true
+        return music
       }
     }
   }

@@ -68,23 +68,23 @@ export default {
   computed: {
     // 每次都应把新数据传给父组件
     newInfo () {
-      if (this.source === 'ncmlink') {
-        return {
-          source: this.source,
-          ncmlink: this.ncmlink.link
-        }
-      } else if (this.source === 'ncmid') {
-        return {
-          source: this.source,
-          ncmid: this.ncmid.id
-        }
-      } else if (this.source === 'linkfile') {
-        return {
-          source: this.source,
-          linkFileInfo: this.linkFileInfo
-        }
-      } else {
-        return {}
+      switch (this.source) {
+        case 'ncmlink':
+          return {
+            source: this.source,
+            ncmlink: this.ncmlink.link
+          }
+        case 'ncmid':
+          return {
+            source: this.source,
+            ncmid: this.ncmid.id
+          }
+        case 'linkfile':
+          return {
+            source: this.source,
+            linkFileInfo: this.linkFileInfo
+          }
+        default: return {}
       }
     }
   },
