@@ -3,7 +3,7 @@
   <div class="maker-wrp">
     <!-- 播放器容器 -->
     <div class="player-wrp">
-      <aplayer  v-if="showPlayer" :music="music" :showLrc="true">
+      <aplayer v-if="showPlayer" :music="music" :showLrc="true" @timeupdate="timeChange" ref="aplayer">
       </aplayer>
     </div>
 
@@ -70,7 +70,7 @@
 import axios from 'axios'
 import Aplayer from 'vue-aplayer'
 import utils from '../js/util/utils.js'
-import conf from '../../config/conf.js'
+import conf from '../../config/conf.dev.js'
 Aplayer.disableVersionBadge = true // Do not print version info to console.
 
 export default {
@@ -94,6 +94,9 @@ export default {
   methods: {
     // 移动端将不显示按钮功能提示文字
     isMobile: utils.isMobile,
+    timeChange () {
+      console.log(this.$refs.aplayer.playStat.playedTime)
+    },
     getMusic (songSetting) {
       let APIServer = conf.APIServer
       let music = {
@@ -108,13 +111,30 @@ export default {
       // console.log('正在获取来自 ' + songSetting.source + ' 的歌曲信息')
 
       // 从歌曲网易云链接中提取歌曲id
-      // testurl: 网页、macOS客户端：http://music.163.com/#/song?id=28739330, http://music.163.com/#/m/song?id=68350
-      const getID = () => {
+      const getID = (link) => {
+        const urlREG = /((http|https):\/\/)?[A-Za-z0-9\._-]*[\/A-Za-z0-9\?\%\#\=]*/i // 匹配出整个url(或者说包含歌曲id的部分，因为只考虑了#, ? 和 = 三种特殊字符)
+        const idREG = /\/song\?id\=([0-9]*)|\/song\/([0-9]*)\//i // 从两种不同的url中匹配出歌曲id
+        let url
 
+        if (link) {
+          url = link.match(urlREG)
+        }
+        if (url && url != null) {
+          url = url[0]
+          const idMatchRs = url.match(idREG)
+          if (typeof idMatchRs[1] !== 'undefined') {
+            return idMatchRs[1]
+          } else {
+            return idMatchRs[2]
+          }
+        } else {
+          return null
+        }
       }
+
       // 获取歌曲源url
-      const getSrc = () => {
-        return axios.get(APIServer + '/music/url?id=' + songSetting.ncmid)
+      const getSrc = (id) => {
+        return axios.get(APIServer + '/music/url?id=' + id)
           .then(res => {
             // console.log('获取到歌曲的src url：' + res.data.data[0].url)
             music.src = res.data.data[0].url
@@ -125,8 +145,8 @@ export default {
       }
 
       // 获取歌曲信息(名称、歌手和专辑图片)
-      const getInfo = () => {
-        return axios.get(APIServer + '/song/detail?ids=' + songSetting.ncmid)
+      const getInfo = (id) => {
+        return axios.get(APIServer + '/song/detail?ids=' + id)
           .then(res => {
             const mergeAr = (former, after) => former.name + ', ' + after.name
             let song = res.data.songs[0]
@@ -146,12 +166,26 @@ export default {
       if (songSetting && songSetting.source) {
         switch (songSetting.source) {
           case 'ncmlink': {
+            let that = this
+            const id = getID(this.songSetting.ncmlink)
+
+            if (id !== null) {
+              axios.all([getSrc(id), getInfo(id)])
+                .then(axios.spread(function (acct, perms) {
+                // 两个请求现在都执行完成
+                  that.showPlayer = true
+                }))
+            } else {
+              // 无法获取id，返回默认歌曲数据以创建播放器
+              this.showPlayer = true
+            }
+
             return music
           }
           case 'ncmid': {
             let that = this
 
-            axios.all([getSrc(), getInfo()])
+            axios.all([getSrc(this.songSetting.ncmid), getInfo(this.songSetting.ncmid)])
               .then(axios.spread(function (acct, perms) {
                 // 两个请求现在都执行完成
                 that.showPlayer = true

@@ -6,9 +6,9 @@
       <!-- 网易云链接设置面板 -->
       <el-tab-pane class="ncmlink" label="网易云链接" name="ncmlink">
         <!-- 链接设置表单 -->
-        <el-form :label-position="'left'" label-width="45px" :model="ncmlink">
+        <el-form :label-position="'left'" label-width="45px" :model="ncmlink" @submit.native.prevent>
           <el-form-item label="链接">
-            <el-input v-model="ncmlink.link" size="small" placeholder="在这里输入网易云歌曲链接哦"></el-input>
+            <el-input v-model="ncmlink.link" size="small" placeholder="在这里输入网易云歌曲链接哦" @keyup.enter.native="$emit ('update-info', newInfo)"></el-input>
           </el-form-item>
 
           <el-form-item>
@@ -22,9 +22,9 @@
       <!-- id设置面板 -->
       <el-tab-pane class="ncmid" label="网易云歌曲id" name="ncmid">
         <!-- id设置表单 -->
-        <el-form :label-position="'left'" label-width="45px" :model="ncmid">
+        <el-form :label-position="'left'" label-width="45px" :model="ncmid" @submit.native.prevent>
           <el-form-item label="id">
-            <el-input v-model="ncmid.id" size="small" placeholder="在这里输入网易云歌曲id哦"></el-input>
+            <el-input v-model="ncmid.id" size="small" placeholder="在这里输入网易云歌曲id哦"  @keyup.enter.native="$emit ('update-info', newInfo)"></el-input>
           </el-form-item>
 
           <el-form-item>
