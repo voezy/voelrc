@@ -45,7 +45,15 @@ export default {
   devServer: {
     contentBase: './build',
     host: '0.0.0.0',
-    disableHostCheck: true
+    disableHostCheck: true,
+    proxy: {
+      '/api/*': {
+        target: 'http://localhost:3000/',
+        pathRewrite: {'^/api': ''},
+        changeOrigin: true,
+        secure: false
+      }
+    }
   },
   resolve: {
     alias: {

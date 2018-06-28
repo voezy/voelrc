@@ -74,6 +74,7 @@ import conf from '../../config/conf.js'
 Aplayer.disableVersionBadge = true // Do not print version info to console.
 
 export default {
+  // songSetting包含了设置歌曲的tab名、设置的具体信息
   props: ['songSetting'],
   data () {
     return {
@@ -107,7 +108,10 @@ export default {
       // console.log('正在获取来自 ' + songSetting.source + ' 的歌曲信息')
 
       // 从歌曲网易云链接中提取歌曲id
-      const getID = () => {}
+      // testurl: 网页、macOS客户端：http://music.163.com/#/song?id=28739330, http://music.163.com/#/m/song?id=68350
+      const getID = () => {
+
+      }
       // 获取歌曲源url
       const getSrc = () => {
         return axios.get(APIServer + '/music/url?id=' + songSetting.ncmid)
@@ -125,13 +129,14 @@ export default {
         return axios.get(APIServer + '/song/detail?ids=' + songSetting.ncmid)
           .then(res => {
             const mergeAr = (former, after) => former.name + ', ' + after.name
+            let song = res.data.songs[0]
             // console.log('获取到歌曲的名称：' + res.data.songs[0].name)
             // console.log('获取到专辑的图片：' + res.data.songs[0].al.picUrl)
             // console.log('获取到歌手的名称：' + res.data.songs[0].ar.reduce(mergeAr))
 
-            music.title = res.data.songs[0].name
-            music.artist = res.data.songs[0].ar.reduce(mergeAr)
-            music.pic = res.data.songs[0].al.picUrl
+            music.title = song.name
+            music.artist = song.ar.length === 1 ? song.ar[0].name : song.ar.reduce(mergeAr)
+            music.pic = song.al.picUrl
           })
           .catch(err => {
             console.log(err)
