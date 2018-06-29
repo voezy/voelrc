@@ -10,7 +10,7 @@
     <!-- 编辑框和控制按钮组容器 -->
     <div class="main-wrp">
       <!-- 歌词编辑框 -->
-      <el-input class="lrc-editor" type="textarea" v-model="lyric" :rows="13" resize="none" placeholder="在这里输入歌词 ^_^" @click.native="clickLrcEditor">
+      <el-input class="lrc-editor" v-model="editorLrc" type="textarea" :rows="13" :disabled="previewing" resize="none" placeholder="在这里输入歌词 ^_^" @click.native="clickLrcEditor">
       </el-input>
 
       <!-- 歌词控制按钮外层容器 -->
@@ -54,7 +54,7 @@
       </div>
       <div class="function-btn-wrp">
         <el-tooltip class="item" :disabled="isMobile()" effect="light" content="留意上方播放器的歌词哦" placement="top">
-          <el-button class="function-btn" round @click="showPlayer=!showPlayer">预览</el-button>
+          <el-button class="function-btn" round @click="previewing = !previewing">预览/编辑</el-button>
         </el-tooltip>
       </div>
       <div class="function-btn-wrp">
@@ -78,28 +78,21 @@ export default {
   props: ['songSetting'],
   data () {
     return {
-      lyric: '',
       showPlayer: true,
-      editingRowNum: 1 // 光标当前所在行
+      editingRowNum: 1, // 光标当前所在行
+      editorLrc: '',
+      previewing: false
     }
   },
   computed: {
     // 注意aplayer会对misic对象各个参数进行非空验证
     music: function () {
-      return this.getMusic(this.songSetting)
+      return this.getMusic(this.songSetting, this.previewing)
     },
     timestamp: function () {
       let sec = this.$refs.aplayer.playStat.playedTime
 
       return utils.genTimestamp(sec)
-    },
-    lrc: () => {
-      let lrcArea = document.querySelector('.lrc-editor textarea')
-      if (lrcArea && lrcArea.value) {
-        return lrcArea.value
-      } else {
-        return ''
-      }
     }
   },
   components: {
@@ -108,18 +101,29 @@ export default {
   methods: {
     // 移动端将不显示按钮功能提示文字
     isMobile: utils.isMobile,
+    /**
+     * 点击编辑框，重新确定光标所在行
+     */
     clickLrcEditor () {
       const ctlInput = utils.ctlInput
       let lrcArea = document.querySelector('.lrc-editor textarea')
       this.editingRowNum = ctlInput.getCurrRow(lrcArea)
     },
+    /**
+     * 在编辑框光标所在行开头增加时间戳
+     */
     addTimestamp () {
       const ctlInput = utils.ctlInput
       let lrcArea = document.querySelector('.lrc-editor textarea')
       lrcArea.value = ctlInput.insertToRowStart(lrcArea.value, this.editingRowNum, this.timestamp)
+      // 因为点击按钮后输入框光标消失，所以要重新聚焦到输入框方便确认歌词在哪行。
+      // 但是要注意聚焦后光标将自动移至内容末尾, 所以这个方法传了一个行数以便确定聚焦到哪行开头。还有编辑框将滚动到最底下。
+      ctlInput.focusInRowStart(lrcArea, this.editingRowNum)
       this.editingRowNum += this.editingRowNum === ctlInput.getTotalRowNum(lrcArea) - 1 ? 0 : 1
 
       // 滚动编辑框
+      // 因为聚焦后编辑框滚动到了最底下，所以将它滚动到当前编辑行附近。
+      // 尽量使当前编辑行所在处往上不超过编辑框一半高度(7行左右)，使得编辑时不会因为光标所在行超出编辑框视野范围而影响编辑。每一行大约21像素
       this.scrollEditor()
     },
     /**
@@ -146,14 +150,10 @@ export default {
 
       lrcArea.value = newValue
 
-      // 获取开头到当前行末尾(包括回车符)所有字符串长度
-      let formerPartLength = 0
-      for (let j = 0; j <= this.editingRowNum; j++) {
-        formerPartLength += rowArr[j].length + 1
-      }
-
       // 编辑框光标移至下一行开头
-      lrcArea.setSelectionRange(formerPartLength + 1, formerPartLength + 1)
+      // lrcArea.setSelectionRange(formerPartLength + 1, formerPartLength + 1)
+      ctlInput.focusInRowStart(lrcArea, this.editingRowNum)
+      this.scrollEditor()
 
       // 因为光标已经移至下一行，所以光标所在当前行加1。（如果没到最后一行的话）
       this.editingRowNum += this.editingRowNum === ctlInput.getTotalRowNum(lrcArea) - 1 ? 0 : 1
@@ -169,32 +169,24 @@ export default {
 
       this.editingRowNum = 0
     },
-    /**
-     * 滚动编辑框
-     */
     scrollEditor () {
       let lrcArea = document.querySelector('.lrc-editor textarea')
-
-      if (lrcArea.scrollHeight - lrcArea.offsetHeight >= 19) {
-        if (this.editingRowNum >= 7) {
-          lrcArea.scrollTop += 21
-        }
+      if (this.editingRowNum > 7) {
+        lrcArea.scrollTop = (this.editingRowNum - 7) * 21
+      } else {
+        lrcArea.scrollTop = 0
       }
     },
-    preview () {
-      this.showPlayer = false
-      this.showPlayer = true
-    },
-    getMusic (songSetting) {
+    getMusic (songSetting, previewing) {
       let APIServer = conf.APIServer
+      let that = this
       let music = {
         title: '没有歌曲',
         artist: '歌手',
         src: 'null',
         pic: 'null',
-        lrc: ''
+        lrc: previewing ? that.editorLrc : ''
       }
-      let that = this
 
       // 修改showPlayer销毁播放器以便利用新数据重新创建
       this.showPlayer = false
@@ -235,7 +227,7 @@ export default {
       }
 
       const getLrc = (id) => {
-        music.lrc = that.lrc
+        // music.lrc = that.lrc
       }
 
       // 获取歌曲信息(名称、歌手和专辑图片)
@@ -263,10 +255,9 @@ export default {
             const id = getID(this.songSetting.ncmlink)
 
             if (id !== null) {
-              axios.all([getSrc(id), getInfo(id)])
+              axios.all([getSrc(id), getInfo(id), getLrc(id)])
                 .then(axios.spread(function (acct, perms) {
-                // 两个请求现在都执行完成
-                  getLrc(id)
+                // 请求现在都执行完成
                   that.showPlayer = true
                 }))
             } else {

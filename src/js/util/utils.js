@@ -115,6 +115,22 @@ export default {
       }
 
       return newStr
+    },
+    /**
+     * 聚焦到输入框某一行的开头处
+     * @param {object} inputObj 输入框对象
+     * @param {number} rowNum 行数
+     */
+    focusInRowStart (inputObj, rowNum) {
+      let subStrArr = inputObj.value.split('\n')
+      let formerLength = 0
+
+      for (let i = 0; i <= rowNum; i++) {
+        formerLength += subStrArr[i].length + 1
+      }
+
+      inputObj.focus()
+      inputObj.setSelectionRange(formerLength, formerLength)
     }
   }
 }
