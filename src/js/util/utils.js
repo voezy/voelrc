@@ -7,6 +7,36 @@ export default {
       return false
     }
   },
+  /**
+   * 将秒数转换为lrc时间标签中 [mm:ss.xx] 的格式
+   * @param {秒数} sec
+   */
+  genTimestamp (sec) {
+    let timestamp
+    // latterSec是不足1分钟部分
+    let mm, ss, xx, latterSec
+
+    mm = Math.floor(sec / 60)
+    latterSec = sec - mm * 60
+    ss = Math.floor(latterSec)
+    xx = Math.round((latterSec - ss) * 100)
+
+    if ((mm + '').length === 1) {
+      mm = '0' + mm
+    }
+
+    if ((ss + '').length === 1) {
+      ss = '0' + ss
+    }
+
+    if ((xx + '').length === 1) {
+      xx += '0'
+    }
+
+    timestamp = '[' + mm + ':' + ss + '.' + xx + ']'
+
+    return timestamp
+  },
   ctlInput: {
     /**
      * 获取当前光标所在行在原字符串中的起始位置(该行首字符位置)

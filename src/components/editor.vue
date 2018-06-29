@@ -3,7 +3,7 @@
   <div class="maker-wrp">
     <!-- 播放器容器 -->
     <div class="player-wrp">
-      <aplayer v-if="showPlayer" :music="music" :showLrc="true" @timeupdate="timeChange" ref="aplayer">
+      <aplayer v-if="showPlayer" :music="music" :showLrc="true" :volume="0.5" ref="aplayer">
       </aplayer>
     </div>
 
@@ -54,7 +54,7 @@
       </div>
       <div class="function-btn-wrp">
         <el-tooltip class="item" :disabled="isMobile()" effect="light" content="留意上方播放器的歌词哦" placement="top">
-          <el-button class="function-btn" round>预览</el-button>
+          <el-button class="function-btn" round @click="showPlayer=!showPlayer">预览</el-button>
         </el-tooltip>
       </div>
       <div class="function-btn-wrp">
@@ -80,13 +80,26 @@ export default {
     return {
       lyric: '',
       showPlayer: true,
-      editRowNum: 1 // 光标当前所在行
+      editingRowNum: 1 // 光标当前所在行
     }
   },
   computed: {
     // 注意aplayer会对misic对象各个参数进行非空验证
     music: function () {
       return this.getMusic(this.songSetting)
+    },
+    timestamp: function () {
+      let sec = this.$refs.aplayer.playStat.playedTime
+
+      return utils.genTimestamp(sec)
+    },
+    lrc: () => {
+      let lrcArea = document.querySelector('.lrc-editor textarea')
+      if (lrcArea && lrcArea.value) {
+        return lrcArea.value
+      } else {
+        return ''
+      }
     }
   },
   components: {
@@ -95,19 +108,19 @@ export default {
   methods: {
     // 移动端将不显示按钮功能提示文字
     isMobile: utils.isMobile,
-    timeChange () {
-      // console.log(this.$refs.aplayer.playStat.playedTime)
-    },
     clickLrcEditor () {
       const ctlInput = utils.ctlInput
       let lrcArea = document.querySelector('.lrc-editor textarea')
-      this.editRowNum = ctlInput.getCurrRow(lrcArea)
+      this.editingRowNum = ctlInput.getCurrRow(lrcArea)
     },
     addTimestamp () {
       const ctlInput = utils.ctlInput
       let lrcArea = document.querySelector('.lrc-editor textarea')
-      lrcArea.value = ctlInput.insertToRowStart(lrcArea.value, this.editRowNum, '[00:00:00]')
-      this.editRowNum += this.editRowNum === ctlInput.getTotalRowNum(lrcArea) - 1 ? 0 : 1
+      lrcArea.value = ctlInput.insertToRowStart(lrcArea.value, this.editingRowNum, this.timestamp)
+      this.editingRowNum += this.editingRowNum === ctlInput.getTotalRowNum(lrcArea) - 1 ? 0 : 1
+
+      // 滚动编辑框
+      this.scrollEditor()
     },
     /**
      * 替换(isDeleting === false)或者删除(isDeleting === true)光标所在行时间标签。
@@ -121,9 +134,9 @@ export default {
 
       // 获取当前行开头处所有时间标签字符串，并进行替换
       if (isDeleting) {
-        rowArr[this.editRowNum] = rowArr[this.editRowNum].replace(/(\[([0-9]{2}:?){3}\]){1,}/, '')
+        rowArr[this.editingRowNum] = rowArr[this.editingRowNum].replace(/\[[0-9]{1,2}\:[0-9]{1,2}\.[0-9]{1,2}\]{1,}/g, '')
       } else {
-        rowArr[this.editRowNum] = rowArr[this.editRowNum].replace(/(\[([0-9]{2}:?){3}\]){1,}/, '[11:11:11]')
+        rowArr[this.editingRowNum] = rowArr[this.editingRowNum].replace(/\[[0-9]{1,2}\:[0-9]{1,2}\.[0-9]{1,2}\]{1,}/, this.timestamp)
       }
 
       for (let i = 0; i < rowArr.length; i++) {
@@ -135,7 +148,7 @@ export default {
 
       // 获取开头到当前行末尾(包括回车符)所有字符串长度
       let formerPartLength = 0
-      for (let j = 0; j <= this.editRowNum; j++) {
+      for (let j = 0; j <= this.editingRowNum; j++) {
         formerPartLength += rowArr[j].length + 1
       }
 
@@ -143,7 +156,7 @@ export default {
       lrcArea.setSelectionRange(formerPartLength + 1, formerPartLength + 1)
 
       // 因为光标已经移至下一行，所以光标所在当前行加1。（如果没到最后一行的话）
-      this.editRowNum += this.editRowNum === ctlInput.getTotalRowNum(lrcArea) - 1 ? 0 : 1
+      this.editingRowNum += this.editingRowNum === ctlInput.getTotalRowNum(lrcArea) - 1 ? 0 : 1
     },
     /**
      * 删除所有时间标签
@@ -151,10 +164,26 @@ export default {
     deleteAllTimestamp () {
       let lrcArea = document.querySelector('.lrc-editor textarea')
 
-      lrcArea.value = lrcArea.value.replace(/(\[([0-9]{2}:?){3}\]){1,}/g, '')
+      lrcArea.value = lrcArea.value.replace(/\[[0-9]{1,2}\:[0-9]{1,2}\.[0-9]{1,2}\]{1,}/g, '')
       lrcArea.setSelectionRange(0, 0)
 
-      this.editRowNum = 0
+      this.editingRowNum = 0
+    },
+    /**
+     * 滚动编辑框
+     */
+    scrollEditor () {
+      let lrcArea = document.querySelector('.lrc-editor textarea')
+
+      if (lrcArea.scrollHeight - lrcArea.offsetHeight >= 19) {
+        if (this.editingRowNum >= 7) {
+          lrcArea.scrollTop += 21
+        }
+      }
+    },
+    preview () {
+      this.showPlayer = false
+      this.showPlayer = true
     },
     getMusic (songSetting) {
       let APIServer = conf.APIServer
@@ -162,8 +191,10 @@ export default {
         title: '没有歌曲',
         artist: '歌手',
         src: 'null',
-        pic: 'null'
+        pic: 'null',
+        lrc: ''
       }
+      let that = this
 
       // 修改showPlayer销毁播放器以便利用新数据重新创建
       this.showPlayer = false
@@ -203,6 +234,10 @@ export default {
           })
       }
 
+      const getLrc = (id) => {
+        music.lrc = that.lrc
+      }
+
       // 获取歌曲信息(名称、歌手和专辑图片)
       const getInfo = (id) => {
         return axios.get(APIServer + '/song/detail?ids=' + id)
@@ -225,13 +260,13 @@ export default {
       if (songSetting && songSetting.source) {
         switch (songSetting.source) {
           case 'ncmlink': {
-            let that = this
             const id = getID(this.songSetting.ncmlink)
 
             if (id !== null) {
               axios.all([getSrc(id), getInfo(id)])
                 .then(axios.spread(function (acct, perms) {
                 // 两个请求现在都执行完成
+                  getLrc(id)
                   that.showPlayer = true
                 }))
             } else {
@@ -242,8 +277,6 @@ export default {
             return music
           }
           case 'ncmid': {
-            let that = this
-
             axios.all([getSrc(this.songSetting.ncmid), getInfo(this.songSetting.ncmid)])
               .then(axios.spread(function (acct, perms) {
                 // 两个请求现在都执行完成
