@@ -7,6 +7,7 @@ import {
 
 export default {
   mode: 'development',
+  devtool: 'eval-source-map',
   entry: path.join(__dirname, 'src/js/main.js'),
   output: {
     path: path.resolve(__dirname, 'build'),

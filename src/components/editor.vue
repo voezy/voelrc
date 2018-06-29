@@ -10,7 +10,7 @@
     <!-- 编辑框和控制按钮组容器 -->
     <div class="main-wrp">
       <!-- 歌词编辑框 -->
-      <el-input class="lrc-editor" type="textarea" v-model="lyric" :rows="13" resize="none" placeholder="在这里输入歌词 ^_^">
+      <el-input class="lrc-editor" type="textarea" v-model="lyric" :rows="13" resize="none" placeholder="在这里输入歌词 ^_^" @click.native="clickLrcEditor">
       </el-input>
 
       <!-- 歌词控制按钮外层容器 -->
@@ -26,19 +26,19 @@
 
           <div class="ctrl-btn">
             <el-tooltip class="item" :disabled="isMobile()" effect="light" content="替换此行时间戳" placement="right">
-              <el-button type="info" icon="el-icon-sort" circle></el-button>
+              <el-button type="info" icon="el-icon-sort" circle @click="replaceTimestamp(false)"></el-button>
             </el-tooltip>
           </div>
 
           <div class="ctrl-btn">
             <el-tooltip class="item" :disabled="isMobile()" effect="light" content="添加时间戳并切换下一句" placement="right">
-              <el-button type="primary" icon="el-icon-arrow-down" circle></el-button>
+              <el-button type="primary" icon="el-icon-arrow-down" circle @click="addTimestamp"></el-button>
             </el-tooltip>
           </div>
 
           <div class="ctrl-btn">
             <el-tooltip class="item" :disabled="isMobile()" effect="light" content="删除此行时间戳" placement="right">
-              <el-button type="danger" icon="el-icon-close" circle></el-button>
+              <el-button type="danger" icon="el-icon-close" circle @click="replaceTimestamp(true)"></el-button>
             </el-tooltip>
           </div>
         </div>
@@ -49,7 +49,7 @@
     <div class="function-btn-container">
       <div class="function-btn-wrp">
         <el-tooltip class="item" :disabled="isMobile()" effect="light" content="删除所有时间戳" placement="top">
-          <el-button class="function-btn" round>重置</el-button>
+          <el-button class="function-btn" round @click="deleteAllTimestamp">重置</el-button>
         </el-tooltip>
       </div>
       <div class="function-btn-wrp">
@@ -79,7 +79,8 @@ export default {
   data () {
     return {
       lyric: '',
-      showPlayer: true
+      showPlayer: true,
+      editRowNum: 1 // 光标当前所在行
     }
   },
   computed: {
@@ -95,7 +96,65 @@ export default {
     // 移动端将不显示按钮功能提示文字
     isMobile: utils.isMobile,
     timeChange () {
-      console.log(this.$refs.aplayer.playStat.playedTime)
+      // console.log(this.$refs.aplayer.playStat.playedTime)
+    },
+    clickLrcEditor () {
+      const ctlInput = utils.ctlInput
+      let lrcArea = document.querySelector('.lrc-editor textarea')
+      this.editRowNum = ctlInput.getCurrRow(lrcArea)
+    },
+    addTimestamp () {
+      const ctlInput = utils.ctlInput
+      let lrcArea = document.querySelector('.lrc-editor textarea')
+      lrcArea.value = ctlInput.insertToRowStart(lrcArea.value, this.editRowNum, '[00:00:00]')
+      this.editRowNum += this.editRowNum === ctlInput.getTotalRowNum(lrcArea) - 1 ? 0 : 1
+    },
+    /**
+     * 替换(isDeleting === false)或者删除(isDeleting === true)光标所在行时间标签。
+     */
+    replaceTimestamp (isDeleting) {
+      const ctlInput = utils.ctlInput
+      let lrcArea = document.querySelector('.lrc-editor textarea')
+      let originValue = lrcArea.value
+      let newValue = ''
+      let rowArr = originValue.split('\n')
+
+      // 获取当前行开头处所有时间标签字符串，并进行替换
+      if (isDeleting) {
+        rowArr[this.editRowNum] = rowArr[this.editRowNum].replace(/(\[([0-9]{2}:?){3}\]){1,}/, '')
+      } else {
+        rowArr[this.editRowNum] = rowArr[this.editRowNum].replace(/(\[([0-9]{2}:?){3}\]){1,}/, '[11:11:11]')
+      }
+
+      for (let i = 0; i < rowArr.length; i++) {
+        // 最后一行不加换行符
+        newValue += i === rowArr.length - 1 ? rowArr[i] : rowArr[i] + '\n'
+      }
+
+      lrcArea.value = newValue
+
+      // 获取开头到当前行末尾(包括回车符)所有字符串长度
+      let formerPartLength = 0
+      for (let j = 0; j <= this.editRowNum; j++) {
+        formerPartLength += rowArr[j].length + 1
+      }
+
+      // 编辑框光标移至下一行开头
+      lrcArea.setSelectionRange(formerPartLength + 1, formerPartLength + 1)
+
+      // 因为光标已经移至下一行，所以光标所在当前行加1。（如果没到最后一行的话）
+      this.editRowNum += this.editRowNum === ctlInput.getTotalRowNum(lrcArea) - 1 ? 0 : 1
+    },
+    /**
+     * 删除所有时间标签
+     */
+    deleteAllTimestamp () {
+      let lrcArea = document.querySelector('.lrc-editor textarea')
+
+      lrcArea.value = lrcArea.value.replace(/(\[([0-9]{2}:?){3}\]){1,}/g, '')
+      lrcArea.setSelectionRange(0, 0)
+
+      this.editRowNum = 0
     },
     getMusic (songSetting) {
       let APIServer = conf.APIServer
