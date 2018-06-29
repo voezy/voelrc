@@ -1,4 +1,7 @@
 export default {
+  /**
+   * 判断是否为移动客户端
+   */
   isMobile () {
     let UA = window.navigator.userAgent
     if (/(iPhone|iPad|iPod|iOS|Android)/i.test(UA)) {
@@ -6,6 +9,14 @@ export default {
     } else {
       return false
     }
+  },
+  genDownLoad (filename, content) {
+    let link = document.createElement('a')
+    let blobObj = new Blob([content], {type: 'text/plain'})
+    link.download = filename
+    link.href = URL.createObjectURL(blobObj)
+    link.click()
+    URL.revokeObjectURL(blobObj)
   },
   /**
    * 将秒数转换为lrc时间标签中 [mm:ss.xx] 的格式
@@ -37,6 +48,9 @@ export default {
 
     return timestamp
   },
+  /**
+   * 包含一些处理input组件和字符串的方法
+   */
   ctlInput: {
     /**
      * 获取当前光标所在行在原字符串中的起始位置(该行首字符位置)

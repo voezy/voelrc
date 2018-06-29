@@ -44,9 +44,10 @@ export default {
   ],
   externals: 'hls.js', // Remove hls warning.
   devServer: {
-    contentBase: './build',
+    contentBase: './static',
     host: '0.0.0.0',
     disableHostCheck: true,
+    // 转发API接口请求
     proxy: {
       '/api/*': {
         target: 'http://localhost:3000/',

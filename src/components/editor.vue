@@ -59,7 +59,7 @@
       </div>
       <div class="function-btn-wrp">
         <el-tooltip class="item" :disabled="isMobile()" effect="light" content="将编辑好的歌词下载保存为lrc文件" placement="top">
-          <el-button class="function-btn" round>保存</el-button>
+          <el-button class="function-btn" round @click="downloadLrc">保存</el-button>
         </el-tooltip>
       </div>
     </div>
@@ -171,20 +171,27 @@ export default {
     },
     scrollEditor () {
       let lrcArea = document.querySelector('.lrc-editor textarea')
-      if (this.editingRowNum > 7) {
-        lrcArea.scrollTop = (this.editingRowNum - 7) * 21
+      // 当编辑到第八行，开始自动向上滚动当前行数-6个单位的行高(大概21)
+      if (this.editingRowNum > 6) {
+        lrcArea.scrollTop = (this.editingRowNum - 6) * 21
       } else {
         lrcArea.scrollTop = 0
       }
     },
+    downloadLrc () {
+      utils.genDownLoad('网络文件歌曲.lrc', this.editorLrc)
+    },
+    /**
+     * 根据父组件传递的歌曲设置信息设置 aPlayer 组件。previewing用于判定是否为预览模式。
+     */
     getMusic (songSetting, previewing) {
       let APIServer = conf.APIServer
       let that = this
       let music = {
-        title: '没有歌曲',
-        artist: '歌手',
-        src: 'null',
-        pic: 'null',
+        title: '未加载歌曲',
+        artist: '未加载歌手',
+        src: 'https://freepd.com/music/City%20Sunshine.mp3',
+        pic: 'pics/default-cover.jpg',
         lrc: previewing ? that.editorLrc : ''
       }
 
@@ -194,23 +201,28 @@ export default {
 
       // 从歌曲网易云链接中提取歌曲id
       const getID = (link) => {
-        const urlREG = /((http|https):\/\/)?[A-Za-z0-9\._-]*[\/A-Za-z0-9\?\%\#\=]*/i // 匹配出整个url(或者说包含歌曲id的部分，因为只考虑了#, ? 和 = 三种特殊字符)
+        const urlREG = /((http|https):\/\/?[A-Za-z0-9\._-]*[\/A-Za-z0-9\?\%\#\=]*){1}/ig // 匹配出整个url(或者说包含歌曲id的部分，因为只考虑了#, ? 和 = 三种特殊字符)
         const idREG = /\/song\?id\=([0-9]*)|\/song\/([0-9]*)\//i // 从两种不同的url中匹配出歌曲id
         let url
 
+        // 如果参数link存在
         if (link) {
           url = link.match(urlREG)
         }
-        if (url && url != null) {
+        // 如果提取歌曲页链接成功。url[0]是匹配出来的链接
+        if (url && url[0]) {
           url = url[0]
+          // idMatchRs 是匹配出来的id结果
           const idMatchRs = url.match(idREG)
-          if (typeof idMatchRs[1] !== 'undefined') {
-            return idMatchRs[1]
+          if (idMatchRs) {
+            if (idMatchRs[1]) {
+              return idMatchRs[1]
+            } else {
+              return idMatchRs[2]
+            }
           } else {
-            return idMatchRs[2]
+            return null
           }
-        } else {
-          return null
         }
       }
 
@@ -218,8 +230,12 @@ export default {
       const getSrc = (id) => {
         return axios.get(APIServer + '/music/url?id=' + id)
           .then(res => {
-            // console.log('获取到歌曲的src url：' + res.data.data[0].url)
-            music.src = res.data.data[0].url
+            try {
+              console.log('获取到歌曲的src url：' + res.data.data[0].url)
+              music.src = res.data.data[0].url
+            } catch (err) {
+              // console.log('未能获取歌曲链接')
+            }
           })
           .catch(err => {
             console.log(err)
@@ -235,14 +251,18 @@ export default {
         return axios.get(APIServer + '/song/detail?ids=' + id)
           .then(res => {
             const mergeAr = (former, after) => former.name + ', ' + after.name
-            let song = res.data.songs[0]
-            // console.log('获取到歌曲的名称：' + res.data.songs[0].name)
-            // console.log('获取到专辑的图片：' + res.data.songs[0].al.picUrl)
-            // console.log('获取到歌手的名称：' + res.data.songs[0].ar.reduce(mergeAr))
+            try {
+              let song = res.data.songs[0]
+              // console.log('获取到歌曲的名称：' + res.data.songs[0].name)
+              // console.log('获取到专辑的图片：' + res.data.songs[0].al.picUrl)
+              // console.log('获取到歌手的名称：' + res.data.songs[0].ar.reduce(mergeAr))
 
-            music.title = song.name
-            music.artist = song.ar.length === 1 ? song.ar[0].name : song.ar.reduce(mergeAr)
-            music.pic = song.al.picUrl
+              music.title = song.name
+              music.artist = song.ar.length === 1 ? song.ar[0].name : song.ar.reduce(mergeAr)
+              music.pic = song.al.picUrl
+            } catch (err) {
+              // console.log('未能获取歌曲信息')
+            }
           })
           .catch(err => {
             console.log(err)
@@ -276,6 +296,14 @@ export default {
             return music
           }
           case 'linkfile': {
+            let linkFileInfo = songSetting.linkFileInfo
+            if (linkFileInfo && linkFileInfo.link) {
+              music.title = '网络文件'
+              music.artist = '加载网络文件成功'
+              music.src = linkFileInfo.link
+              music.pic = 'pics/linkfile-cover.png'
+            }
+            that.showPlayer = true
             return music
           }
           default: {
