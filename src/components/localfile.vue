@@ -1,21 +1,18 @@
 <template>
   <div class="setinfo-form">
-    <el-form :label-position="'right'" label-width="60px" :model="setting">
-      <el-upload action="" :on-preview="handlePreview" :file-list="fileList" :on-remove="handleRemove" multiple :limit="1" :on-change="handleChange">
-        <el-button size="small" type="primary">点击选择</el-button>
-        <div slot="tip" class="el-upload__tip">只能选择音频文件</div>
-      </el-upload>
-      <el-form-item label="名称">
-        <el-input v-model="setting.name" size="small" placeholder="输入歌曲名称"></el-input>
+    <el-form :label-position="'right'" label-width="60px">
+      <el-form-item class="upload-wrp">
+        <el-upload action="" :auto-upload="false" drag multiple :limit="1" :accept="'audio/*'" :on-change="updateFileInfo">
+          <i class="el-icon-upload"></i>
+          <div class="el-upload__text">将文件拖到此处，或<em>点击选择</em></div>
+          <div class="el-upload__tip" slot="tip">一次只能选择一个，且只能是音频文件哦</div>
+        </el-upload>
       </el-form-item>
-      <el-form-item label="歌手">
-        <el-input v-model="setting.singer" size="small" placeholder="输入歌手名称"></el-input>
-      </el-form-item>
-      <el-form-item label="专辑">
-        <el-input v-model="setting.album" size="small" placeholder="输入歌曲所属专辑"></el-input>
-      </el-form-item>
-      <el-form-item label="编辑者">
-        <el-input v-model="setting.creator" size="small" placeholder="输入歌词编辑者昵称"></el-input>
+
+      <el-form-item>
+        <div class="ensure-btn-wrp">
+          <el-button round @click="$emit('update-localfile', fileList[0] ? fileList[0].url : null)">确定</el-button>
+        </div>
       </el-form-item>
     </el-form>
   </div>
@@ -25,35 +22,27 @@
 export default {
   data () {
     return {
-      setting: {
-        localfile: '',
-        name: '',
-        singer: '',
-        album: '',
-        creator: ''
-      },
-      fileList: [{
-        name: 'food.jpeg',
-        url: 'https://fuss10.elemecdn.com/3/63/4e7f3a15429bfda99bce42a18cdd1jpeg.jpeg?imageMogr2/thumbnail/360x360/format/webp/quality/100'
-      }]
+      fileList: []
     }
   },
   methods: {
-    handleRemove (file, fileList) {
-      console.log(file, fileList)
-    },
-    handlePreview (file, flieList) {
-      console.log(file, flieList)
-    },
-    handleChange (file, flieList) {
-      console.log(file, flieList)
+    updateFileInfo (file, fileList) {
+      this.fileList = fileList
+      console.log('选择本地文件: ' + fileList[0].url)
     }
   }
 }
 </script>
 
 <style lang="less" scoped>
-.el-input {
-  width: 270px;
+.setinfo-form {
+  margin: 10px auto;
+}
+.upload-wrp {
+  margin: 0 auto;
+}
+.ensure-btn-wrp {
+  width: 80px;
+  margin: 0 auto;
 }
 </style>

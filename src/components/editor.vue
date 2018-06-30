@@ -10,7 +10,16 @@
     <!-- 编辑框和控制按钮组容器 -->
     <div class="main-wrp">
       <!-- 歌词编辑框 -->
-      <el-input class="lrc-editor" v-model="editorLrc" type="textarea" :rows="13" :disabled="previewing" resize="none" placeholder="在这里输入歌词 ^_^" @click.native="clickLrcEditor">
+      <el-input
+        class="lrc-editor"
+        v-model="lrc"
+        type="textarea"
+        :rows="13"
+        :disabled="previewing"
+        resize="none"
+        placeholder="在这里输入歌词 ^_^"
+        @click.native="clickLrcEditor"
+        >
       </el-input>
 
       <!-- 歌词控制按钮外层容器 -->
@@ -32,7 +41,7 @@
 
           <div class="ctrl-btn">
             <el-tooltip class="item" :disabled="isMobile()" effect="light" content="添加时间戳并切换下一句" placement="right">
-              <el-button type="primary" icon="el-icon-arrow-down" circle @click="addTimestamp"></el-button>
+              <el-button type="primary" icon="el-icon-arrow-down" circle @click="addTimestamp();addingTimestamp = !addingTimestamp"></el-button>
             </el-tooltip>
           </div>
 
@@ -54,7 +63,7 @@
       </div>
       <div class="function-btn-wrp">
         <el-tooltip class="item" :disabled="isMobile()" effect="light" content="留意上方播放器的歌词哦" placement="top">
-          <el-button class="function-btn" round @click="previewing = !previewing">预览/编辑</el-button>
+          <el-button class="function-btn" round @click="switchPrewiew">{{previewing ? '编辑' : '预览'}}</el-button>
         </el-tooltip>
       </div>
       <div class="function-btn-wrp">
@@ -79,20 +88,31 @@ export default {
   data () {
     return {
       showPlayer: true,
-      editingRowNum: 1, // 光标当前所在行
-      editorLrc: '',
-      previewing: false
+      editingRowNum: 0, // 光标当前所在行。默认值其实没有影响，因为对编辑框的点击事件进行了监听，会自动计算光标所在行
+      lrc: '',
+      previewing: false,
+      addingTimestamp: false
     }
+  },
+  watch: {
   },
   computed: {
     // 注意aplayer会对misic对象各个参数进行非空验证
-    music: function () {
+    music () {
       return this.getMusic(this.songSetting, this.previewing)
     },
-    timestamp: function () {
+    timestamp () {
       let sec = this.$refs.aplayer.playStat.playedTime
 
       return utils.genTimestamp(sec)
+    },
+    editorLrc () {
+      let lrcArea = document.querySelector('.lrc-editor textarea')
+      if (lrcArea && lrcArea) {
+        return lrcArea.value
+      } else {
+        return ''
+      }
     }
   },
   components: {
@@ -109,22 +129,35 @@ export default {
       let lrcArea = document.querySelector('.lrc-editor textarea')
       this.editingRowNum = ctlInput.getCurrRow(lrcArea)
     },
+    switchPrewiew () {
+      this.previewing = !this.previewing
+      if (this.previewing) {
+        this.$message({
+          type: 'success',
+          message: '请点击播放器左侧按钮，留意歌词中间歌词部分'
+        })
+      }
+    },
     /**
      * 在编辑框光标所在行开头增加时间戳
      */
     addTimestamp () {
       const ctlInput = utils.ctlInput
       let lrcArea = document.querySelector('.lrc-editor textarea')
-      lrcArea.value = ctlInput.insertToRowStart(lrcArea.value, this.editingRowNum, this.timestamp)
-      // 因为点击按钮后输入框光标消失，所以要重新聚焦到输入框方便确认歌词在哪行。
-      // 但是要注意聚焦后光标将自动移至内容末尾, 所以这个方法传了一个行数以便确定聚焦到哪行开头。还有编辑框将滚动到最底下。
-      ctlInput.focusInRowStart(lrcArea, this.editingRowNum)
-      this.editingRowNum += this.editingRowNum === ctlInput.getTotalRowNum(lrcArea) - 1 ? 0 : 1
+      this.lrc = ctlInput.insertToRowStart(this.lrc, this.editingRowNum, this.timestamp)
+      this.addingTimestamp = !this.addingTimestamp
+      /**
+       * 因为点击按钮后输入框光标消失，所以要重新聚焦到输入框方便确认歌词在哪行。
+       * 但是要注意聚焦后光标将自动移至内容末尾, 所以这个方法传了一个行数以便确定聚焦到哪行开头。还有编辑框将滚动到最底下。
+       *
+       */
+      // ctlInput.focusInRowStart(lrcArea, this.editingRowNum)
 
       // 滚动编辑框
       // 因为聚焦后编辑框滚动到了最底下，所以将它滚动到当前编辑行附近。
       // 尽量使当前编辑行所在处往上不超过编辑框一半高度(7行左右)，使得编辑时不会因为光标所在行超出编辑框视野范围而影响编辑。每一行大约21像素
       this.scrollEditor()
+      this.editingRowNum += this.editingRowNum === ctlInput.getTotalRowNum(lrcArea) - 1 ? 0 : 1
     },
     /**
      * 替换(isDeleting === false)或者删除(isDeleting === true)光标所在行时间标签。
@@ -132,7 +165,8 @@ export default {
     replaceTimestamp (isDeleting) {
       const ctlInput = utils.ctlInput
       let lrcArea = document.querySelector('.lrc-editor textarea')
-      let originValue = lrcArea.value
+      // let originValue = lrcArea.value
+      let originValue = this.lrc
       let newValue = ''
       let rowArr = originValue.split('\n')
 
@@ -148,7 +182,8 @@ export default {
         newValue += i === rowArr.length - 1 ? rowArr[i] : rowArr[i] + '\n'
       }
 
-      lrcArea.value = newValue
+      // lrcArea.value = newValue
+      this.lrc = newValue
 
       // 编辑框光标移至下一行开头
       // lrcArea.setSelectionRange(formerPartLength + 1, formerPartLength + 1)
@@ -162,12 +197,29 @@ export default {
      * 删除所有时间标签
      */
     deleteAllTimestamp () {
-      let lrcArea = document.querySelector('.lrc-editor textarea')
+      let that = this
+      this.$confirm('确定删除所有时间标签?', '重置提示', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+      }).then(() => {
+        let lrcArea = document.querySelector('.lrc-editor textarea')
 
-      lrcArea.value = lrcArea.value.replace(/\[[0-9]{1,2}\:[0-9]{1,2}\.[0-9]{1,2}\]{1,}/g, '')
-      lrcArea.setSelectionRange(0, 0)
+        // lrcArea.value = lrcArea.value.replace(/\[[0-9]{1,2}\:[0-9]{1,2}\.[0-9]{1,2}\]{1,}/g, '')
+        that.lrc = lrcArea.value.replace(/\[[0-9]{1,2}\:[0-9]{1,2}\.[0-9]{1,2}\]{1,}/g, '')
+        lrcArea.setSelectionRange(0, 0)
 
-      this.editingRowNum = 0
+        that.editingRowNum = 0
+        this.$message({
+          type: 'success',
+          message: '已重置'
+        })
+      }).catch(() => {
+        this.$message({
+          type: 'info',
+          message: '取消重置'
+        })
+      })
     },
     scrollEditor () {
       let lrcArea = document.querySelector('.lrc-editor textarea')
@@ -179,7 +231,32 @@ export default {
       }
     },
     downloadLrc () {
-      utils.genDownLoad('网络文件歌曲.lrc', this.editorLrc)
+      let filename
+      if (this.songSetting && this.songSetting.source) {
+        let source = this.songSetting.source
+        switch (source) {
+          case 'ncmlink':
+            filename = this.music.artist + ' - ' + this.music.title + '.lrc'
+            break
+          case 'ncmid':
+            filename = this.music.artist + ' - ' + this.music.title + '.lrc'
+            break
+          case 'linkfile':
+            filename = '网络音频歌词.lrc'
+            break
+          case 'localfile':
+            filename = '本地音频歌词'
+            break
+          default:
+            filename = '歌词.lrc'
+        }
+        utils.genDownLoad(filename, this.lrc)
+      } else {
+        this.$message({
+          type: 'info',
+          message: '请先设置歌曲信息'
+        })
+      }
     },
     /**
      * 根据父组件传递的歌曲设置信息设置 aPlayer 组件。previewing用于判定是否为预览模式。
@@ -188,11 +265,11 @@ export default {
       let APIServer = conf.APIServer
       let that = this
       let music = {
-        title: '未加载歌曲',
-        artist: '未加载歌手',
+        title: '默认歌曲',
+        artist: '默认歌手',
         src: 'https://freepd.com/music/City%20Sunshine.mp3',
         pic: 'pics/default-cover.jpg',
-        lrc: previewing ? that.editorLrc : ''
+        lrc: previewing ? that.lrc : ''
       }
 
       // 修改showPlayer销毁播放器以便利用新数据重新创建
@@ -202,27 +279,36 @@ export default {
       // 从歌曲网易云链接中提取歌曲id
       const getID = (link) => {
         const urlREG = /((http|https):\/\/?[A-Za-z0-9\._-]*[\/A-Za-z0-9\?\%\#\=]*){1}/ig // 匹配出整个url(或者说包含歌曲id的部分，因为只考虑了#, ? 和 = 三种特殊字符)
-        const idREG = /\/song\?id\=([0-9]*)|\/song\/([0-9]*)\//i // 从两种不同的url中匹配出歌曲id
+        const idREG = /\/song\?id\=([0-9]*)|\/song\/([0-9]*)(\/|\?)/i // 从几种不同的url中匹配出歌曲id
         let url
 
         // 如果参数link存在
         if (link) {
           url = link.match(urlREG)
-        }
-        // 如果提取歌曲页链接成功。url[0]是匹配出来的链接
-        if (url && url[0]) {
-          url = url[0]
-          // idMatchRs 是匹配出来的id结果
-          const idMatchRs = url.match(idREG)
-          if (idMatchRs) {
-            if (idMatchRs[1]) {
-              return idMatchRs[1]
+          // 如果提取歌曲页链接成功。url[0]是匹配出来的链接
+          if (url && url[0]) {
+            url = url[0]
+            // idMatchRs 是匹配出来的id结果
+            const idMatchRs = url.match(idREG)
+            if (idMatchRs) {
+              if (idMatchRs[1]) {
+              // macos 客户端、网页、ios
+                return idMatchRs[1]
+              } else {
+              // 安卓匹配结果
+                return idMatchRs[2]
+              }
             } else {
-              return idMatchRs[2]
+              // id无法识别
+              return null
             }
           } else {
+            // 链接无法识别
             return null
           }
+        } else {
+          // 链接参数不存在
+          return null
         }
       }
 
@@ -250,6 +336,7 @@ export default {
       const getInfo = (id) => {
         return axios.get(APIServer + '/song/detail?ids=' + id)
           .then(res => {
+            // 歌手是一个数组，每个数组内有一个对象，name属性是这个歌手的名字
             const mergeAr = (former, after) => former.name + ', ' + after.name
             try {
               let song = res.data.songs[0]
@@ -271,39 +358,55 @@ export default {
 
       if (songSetting && songSetting.source) {
         switch (songSetting.source) {
-          case 'ncmlink': {
-            const id = getID(this.songSetting.ncmlink)
-
-            if (id !== null) {
-              axios.all([getSrc(id), getInfo(id), getLrc(id)])
+          case 'ncm': {
+            // 如果是纯数字那么就认为是网易云id。否则认为是链接或者分享文字，先提取id，再设置音乐
+            if (/^[0-9]*$/.test(this.songSetting.ncm)) {
+              axios.all([getSrc(this.songSetting.ncm), getInfo(this.songSetting.ncm)])
                 .then(axios.spread(function (acct, perms) {
-                // 请求现在都执行完成
+                // 两个请求现在都执行完成
                   that.showPlayer = true
                 }))
+              return music
             } else {
-              // 无法获取id，返回默认歌曲数据以创建播放器
-              this.showPlayer = true
-            }
+              // 链接或分享文字。提取ID
+              const id = getID(this.songSetting.ncm)
 
-            return music
-          }
-          case 'ncmid': {
-            axios.all([getSrc(this.songSetting.ncmid), getInfo(this.songSetting.ncmid)])
-              .then(axios.spread(function (acct, perms) {
-                // 两个请求现在都执行完成
-                that.showPlayer = true
-              }))
-            return music
+              if (id) {
+                axios.all([getSrc(id), getInfo(id), getLrc(id)])
+                  .then(axios.spread(function (acct, perms) {
+                    // 请求现在都执行完成
+                    that.showPlayer = true
+                  }))
+              } else {
+              // 无法获取id，返回默认歌曲数据以创建播放器
+                this.showPlayer = true
+              }
+
+              return music
+            }
           }
           case 'linkfile': {
             let linkFileInfo = songSetting.linkFileInfo
-            if (linkFileInfo && linkFileInfo.link) {
+            if (linkFileInfo) {
               music.title = '网络文件'
-              music.artist = '加载网络文件成功'
-              music.src = linkFileInfo.link
+              music.artist = '未知歌手'
+              music.src = linkFileInfo
               music.pic = 'pics/linkfile-cover.png'
             }
             that.showPlayer = true
+            return music
+          }
+          case 'localfile': {
+            let localFileInfo = songSetting.localFileInfo
+
+            if (localFileInfo) {
+              music.src = localFileInfo
+              music.title = '本地歌曲'
+              music.artist = '未知歌手'
+              console.log('得到本地文件链接：' + music.src)
+            }
+            that.showPlayer = true
+
             return music
           }
           default: {

@@ -18,7 +18,9 @@ import {
   Upload,
   Tooltip,
   Tabs,
-  TabPane
+  TabPane,
+  Message,
+  MessageBox
 } from 'element-ui'
 
 Vue.use(Button)
@@ -37,6 +39,9 @@ Vue.use(Tooltip)
 Vue.use(Tabs)
 Vue.use(TabPane)
 Vue.use(Upload)
+Vue.prototype.$msgbox = MessageBox
+Vue.prototype.$confirm = MessageBox.confirm
+Vue.prototype.$message = Message
 
 let vm = new Vue({
   components: {

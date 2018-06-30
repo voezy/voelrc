@@ -23,9 +23,7 @@ export default {
   },
   computed: {
     newLinkFileInfo () {
-      return {
-        link: this.linkFileInfo.link
-      }
+      return this.linkFileInfo.link
     }
   }
 }
@@ -34,9 +32,9 @@ export default {
 <style lang="less" scoped>
 @elFormWidth: 350px;
 @elFormHeight: 360px;
-@elInputWidth: 270px;
+@elInputWidth: 290px;
 @atPhoneElFormWidth: 280px;
-@atPhoneElInputWidth: 190px;
+@atPhoneElInputWidth: 60vw;
 .el-form {
   width: @elFormWidth;
   height: @elFormHeight;
