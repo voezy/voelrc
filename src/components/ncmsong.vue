@@ -1,23 +1,23 @@
 <template>
-  <!-- 文件链接设置表单 -->
+  <!-- 网易歌曲设置表单 -->
   <el-form
     :label-position="'left'"
     label-width="45px"
-    :model="linkFileInfo"
+    :model="ncm"
     @submit.native.prevent
   >
-    <el-form-item label="链接">
+    <el-form-item label="信息">
       <el-input
-        v-model="linkFileInfo.link"
-        size="small"
-        placeholder="输入歌曲文件链接"
-        @keyup.enter.native="$emit ('update-linkfile', newLinkFileInfo)"
-      ></el-input>
+      v-model="ncm.info"
+      size="small"
+      placeholder="可输入歌曲链接、ID或分享文字"
+      @keyup.enter.native="$emit('update-ncmsong', newInfo)"
+    ></el-input>
     </el-form-item>
 
     <el-form-item>
       <div class="submit-btn-s-wrp">
-        <el-button round @click="$emit('update-linkfile', newLinkFileInfo)">确定</el-button>
+        <el-button round @click="$emit('update-ncmsong', newInfo)">确定</el-button>
       </div>
     </el-form-item>
   </el-form>
@@ -27,14 +27,14 @@
 export default {
   data () {
     return {
-      linkFileInfo: {
-        link: ''
+      ncm: {
+        info: ''
       }
     }
   },
   computed: {
-    newLinkFileInfo () {
-      return this.linkFileInfo.link
+    newInfo () {
+      return this.ncm.info
     }
   }
 }

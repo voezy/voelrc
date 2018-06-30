@@ -15,9 +15,9 @@ export default {
    * @param {string} filename 文件名
    * @param {*} content 文件内容
    */
-  genDownLoad (filename, content) {
+  genDownLoad (filename, content, type) {
     let link = document.createElement('a')
-    let blobObj = new Blob([content], {type: 'text/plain'})
+    let blobObj = new Blob([content], {type: type})
     link.download = filename
     link.href = URL.createObjectURL(blobObj)
     link.click()

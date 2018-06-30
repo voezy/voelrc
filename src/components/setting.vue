@@ -2,7 +2,13 @@
   <!-- 歌曲设置组件容器 -->
   <div class="setting-wrp">
     <!-- 歌曲设置选项卡 -->
-    <el-tabs class="setting-tabs" :tab-position="'top'" type="border-card" v-model="source" @tab-click="switchSource">
+    <el-tabs
+      class="setting-tabs"
+      :tab-position="'top'"
+      type="border-card"
+      v-model="source"
+      @tab-click="switchSource"
+    >
       <!-- 文件链接设置面板 -->
       <el-tab-pane label="文件链接" name="linkfile">
         <!-- 文件链接设置组件 -->
@@ -14,19 +20,8 @@
         <localfile class="localfile" @update-localfile="updateLocalFile"/>
       </el-tab-pane>
 
-      <!-- 网易云设置面板 -->
-      <el-tab-pane class="ncm" label="网易云" name="ncm">
-        <el-form :label-position="'left'" label-width="45px" :model="ncm" @submit.native.prevent>
-          <el-form-item label="信息">
-            <el-input v-model="ncm.info" size="small" placeholder="可输入歌曲链接、ID或分享文字" @keyup.enter.native="$emit ('update-info', newInfo)"></el-input>
-          </el-form-item>
-
-          <el-form-item>
-            <div class="ncm-btn-s-wrp">
-              <el-button round @click="$emit ('update-info', newInfo)">确定</el-button>
-            </div>
-          </el-form-item>
-        </el-form>
+      <el-tab-pane label="网易云" name="ncm">
+        <ncmsong class="ncm" @update-ncmsong="updateNcmSong"></ncmsong>
       </el-tab-pane>
     </el-tabs>
   </div>
@@ -35,18 +30,18 @@
 <script>
 import linkfile from './linkfile.vue'
 import localfile from './localfile.vue'
+import ncmsong from './ncmsong.vue'
 
 export default {
   components: {
     linkfile,
-    localfile
+    localfile,
+    ncmsong
   },
   data () {
     return {
       source: 'linkfile',
-      ncm: {
-        info: ''
-      },
+      ncm: '',
       linkFileInfo: '',
       localFileInfo: ''
     }
@@ -55,12 +50,11 @@ export default {
     // 每次都应把新数据传给父组件
     newInfo () {
       switch (this.source) {
-        case 'ncm': {
+        case 'ncm':
           return {
             source: this.source,
-            ncm: this.ncm.info
+            ncm: this.ncm
           }
-        }
         case 'linkfile':
           return {
             source: this.source,
@@ -87,6 +81,10 @@ export default {
     updateLocalFile (newLocalFileInfo) {
       this.localFileInfo = newLocalFileInfo
       this.$emit('update-info', this.newInfo)
+    },
+    updateNcmSong (newNcmInfo) {
+      this.ncm = newNcmInfo
+      this.$emit('update-info', this.newInfo)
     }
   }
 }
@@ -111,18 +109,9 @@ export default {
   height: 100%;
 }
 // 网易云链接设置面板和id设置面板
-.ncm {
+.linkfile, .ncm {
   width: @ElInputWidth;
   margin: 50px auto;
-}
-// 网易云链接设置按钮定位容器
-.ncm-btn-s-wrp {
-  width: 80px;
-  margin: 0 auto;
-}
-// 文件链接设置组件
-.linkfile {
-  margin: 10px auto;
 }
 // For mobile phone.
 @media only screen and (max-width: 767px) {
@@ -133,7 +122,7 @@ export default {
     margin: 0 auto;
   }
   // 网易云链接设置面板和id设置面板
-  .ncm {
+  .linkfile, .ncm {
     width: @atPhoneElInputWidth;
   }
   // 文件链接设置组件

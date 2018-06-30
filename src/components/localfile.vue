@@ -2,7 +2,15 @@
   <div class="setinfo-form">
     <el-form :label-position="'right'" label-width="60px">
       <el-form-item class="upload-wrp">
-        <el-upload action="" :auto-upload="false" drag multiple :limit="1" :accept="'audio/*'" :on-change="updateFileInfo">
+        <el-upload
+          action=""
+          :auto-upload="false"
+          drag
+          multiple
+          :limit="1"
+          :accept="'audio/*'"
+          :on-change="updateFileInfo"
+        >
           <i class="el-icon-upload"></i>
           <div class="el-upload__text">将文件拖到此处，或<em>点击选择</em></div>
           <div class="el-upload__tip" slot="tip">一次只能选择一个，且只能是音频文件哦</div>
@@ -11,7 +19,10 @@
 
       <el-form-item>
         <div class="ensure-btn-wrp">
-          <el-button round @click="$emit('update-localfile', fileList[0] ? fileList[0].url : null)">确定</el-button>
+          <el-button
+            round
+            @click="$emit('update-localfile', fileList[0] ? fileList[0].url : null)"
+          >确定</el-button>
         </div>
       </el-form-item>
     </el-form>

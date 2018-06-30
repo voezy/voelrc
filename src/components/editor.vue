@@ -3,7 +3,12 @@
   <div class="maker-wrp">
     <!-- 播放器容器 -->
     <div class="player-wrp">
-      <aplayer v-if="showPlayer" :music="music" :showLrc="true" :volume="0.5" ref="aplayer">
+      <aplayer
+      v-if="showPlayer"
+      :music="music"
+      :showLrc="true"
+      :volume="0.5"
+      ref="aplayer">
       </aplayer>
     </div>
 
@@ -28,26 +33,69 @@
         <div class="ctrlbtn-pos-wrp">
           <!-- 调出设置面板按钮 -->
           <div class="ctrl-btn setting-btn">
-            <el-tooltip class="item" :disabled="isMobile()" effect="light" content="设置歌曲" placement="right">
-              <el-button type="success" icon="el-icon-setting" circle @click="$emit('setting')"></el-button>
+            <el-tooltip class="item"
+              :disabled="isMobile()"
+              effect="light"
+              content="设置歌曲"
+              placement="right"
+            >
+              <el-button
+                type="success"
+                icon="el-icon-setting"
+                circle
+                @click="$emit('setting')"
+               ></el-button>
             </el-tooltip>
           </div>
 
           <div class="ctrl-btn">
-            <el-tooltip class="item" :disabled="isMobile()" effect="light" content="替换此行时间戳" placement="right">
-              <el-button type="info" icon="el-icon-sort" circle @click="replaceTimestamp(false)"></el-button>
+            <el-tooltip class="item"
+              :disabled="isMobile()"
+              effect="light"
+              content="替换此行时间戳"
+              placement="right"
+            >
+              <el-button
+                type="info"
+                icon="el-icon-sort"
+                circle
+                @click="replaceTimestamp(false)"
+              ></el-button>
+
             </el-tooltip>
           </div>
 
           <div class="ctrl-btn">
-            <el-tooltip class="item" :disabled="isMobile()" effect="light" content="添加时间戳并切换下一句" placement="right">
-              <el-button type="primary" icon="el-icon-arrow-down" circle @click="addTimestamp();addingTimestamp = !addingTimestamp"></el-button>
+            <el-tooltip
+              class="item"
+              :disabled="isMobile()"
+              effect="light"
+              content="添加时间戳并切换下一句"
+              placement="right"
+            >
+              <el-button
+                type="primary"
+                icon="el-icon-arrow-down"
+                circle
+                @click="addTimestamp();"
+              ></el-button>
             </el-tooltip>
           </div>
 
           <div class="ctrl-btn">
-            <el-tooltip class="item" :disabled="isMobile()" effect="light" content="删除此行时间戳" placement="right">
-              <el-button type="danger" icon="el-icon-close" circle @click="replaceTimestamp(true)"></el-button>
+            <el-tooltip
+              class="item"
+              :disabled="isMobile()"
+              effect="light"
+              content="删除此行时间戳"
+              placement="right"
+            >
+              <el-button
+                type="danger"
+                icon="el-icon-close"
+                circle
+                @click="replaceTimestamp(true)"
+              ></el-button>
             </el-tooltip>
           </div>
         </div>
@@ -57,18 +105,53 @@
     <!-- 功能按钮容器 -->
     <div class="function-btn-container">
       <div class="function-btn-wrp">
-        <el-tooltip class="item" :disabled="isMobile()" effect="light" content="删除所有时间戳" placement="top">
-          <el-button class="function-btn" round @click="deleteAllTimestamp">重置</el-button>
+        <el-tooltip
+          class="item"
+          :disabled="isMobile()"
+          effect="light"
+          content="删除所有时间戳"
+          placement="top"
+        >
+          <el-button
+            class="function-btn"
+            round
+            @click="deleteAllTimestamp"
+          >重置</el-button>
         </el-tooltip>
       </div>
       <div class="function-btn-wrp">
-        <el-tooltip class="item" :disabled="isMobile()" effect="light" content="留意上方播放器的歌词哦" placement="top">
-          <el-button class="function-btn" round @click="switchPrewiew">{{previewing ? '编辑' : '预览'}}</el-button>
+        <el-tooltip
+          class="item"
+          :disabled="isMobile()"
+          effect="light"
+          content="留意上方播放器的歌词哦"
+          placement="top"
+        >
+          <el-button
+            class="function-btn"
+            round
+            @click="switchPrewiew"
+          >
+            {{previewing ? '编辑' : '预览'}}
+          </el-button>
+
         </el-tooltip>
       </div>
       <div class="function-btn-wrp">
-        <el-tooltip class="item" :disabled="isMobile()" effect="light" content="将编辑好的歌词下载保存为lrc文件" placement="top">
-          <el-button class="function-btn" round @click="downloadLrc">保存</el-button>
+        <el-tooltip
+          class="item"
+          :disabled="isMobile()"
+          effect="light"
+          content="将编辑好的歌词下载保存为lrc文件"
+          placement="top"
+        >
+          <el-button
+            class="function-btn"
+            round
+            @click="downloadLrc"
+          >
+            保存
+          </el-button>
         </el-tooltip>
       </div>
     </div>
@@ -80,7 +163,7 @@ import axios from 'axios'
 import Aplayer from 'vue-aplayer'
 import utils from '../js/util/utils.js'
 import conf from '../../config/conf.dev.js'
-Aplayer.disableVersionBadge = true // Do not print version info to console.
+Aplayer.disableVersionBadge = true // 不输出aplayer版本信息到控制台
 
 export default {
   // songSetting包含了设置歌曲的tab名、设置的具体信息
@@ -90,8 +173,7 @@ export default {
       showPlayer: true,
       editingRowNum: 0, // 光标当前所在行。默认值其实没有影响，因为对编辑框的点击事件进行了监听，会自动计算光标所在行
       lrc: '',
-      previewing: false,
-      addingTimestamp: false
+      previewing: false
     }
   },
   watch: {
@@ -99,20 +181,12 @@ export default {
   computed: {
     // 注意aplayer会对misic对象各个参数进行非空验证
     music () {
-      return this.getMusic(this.songSetting, this.previewing)
+      return this.getMusic()
     },
     timestamp () {
       let sec = this.$refs.aplayer.playStat.playedTime
 
       return utils.genTimestamp(sec)
-    },
-    editorLrc () {
-      let lrcArea = document.querySelector('.lrc-editor textarea')
-      if (lrcArea && lrcArea) {
-        return lrcArea.value
-      } else {
-        return ''
-      }
     }
   },
   components: {
@@ -134,7 +208,7 @@ export default {
       if (this.previewing) {
         this.$message({
           type: 'success',
-          message: '请点击播放器左侧按钮，留意歌词中间歌词部分'
+          message: '请点击播放器左侧按钮，留意中间歌词部分'
         })
       }
     },
@@ -145,7 +219,6 @@ export default {
       const ctlInput = utils.ctlInput
       let lrcArea = document.querySelector('.lrc-editor textarea')
       this.lrc = ctlInput.insertToRowStart(this.lrc, this.editingRowNum, this.timestamp)
-      this.addingTimestamp = !this.addingTimestamp
       /**
        * 因为点击按钮后输入框光标消失，所以要重新聚焦到输入框方便确认歌词在哪行。
        * 但是要注意聚焦后光标将自动移至内容末尾, 所以这个方法传了一个行数以便确定聚焦到哪行开头。还有编辑框将滚动到最底下。
@@ -160,33 +233,26 @@ export default {
       this.editingRowNum += this.editingRowNum === ctlInput.getTotalRowNum(lrcArea) - 1 ? 0 : 1
     },
     /**
-     * 替换(isDeleting === false)或者删除(isDeleting === true)光标所在行时间标签。
+     * 替换(当isDeleting === false)或者删除(当isDeleting === true)光标所在行时间标签。
      */
     replaceTimestamp (isDeleting) {
       const ctlInput = utils.ctlInput
       let lrcArea = document.querySelector('.lrc-editor textarea')
-      // let originValue = lrcArea.value
       let originValue = this.lrc
       let newValue = ''
       let rowArr = originValue.split('\n')
 
       // 获取当前行开头处所有时间标签字符串，并进行替换
-      if (isDeleting) {
-        rowArr[this.editingRowNum] = rowArr[this.editingRowNum].replace(/\[[0-9]{1,2}\:[0-9]{1,2}\.[0-9]{1,2}\]{1,}/g, '')
-      } else {
-        rowArr[this.editingRowNum] = rowArr[this.editingRowNum].replace(/\[[0-9]{1,2}\:[0-9]{1,2}\.[0-9]{1,2}\]{1,}/, this.timestamp)
-      }
+      rowArr[this.editingRowNum] = rowArr[this.editingRowNum].replace(/\[[0-9]{1,2}\:[0-9]{1,2}\.[0-9]{1,2}\]{1,}/, isDeleting ? '' : this.timestamp)
 
       for (let i = 0; i < rowArr.length; i++) {
         // 最后一行不加换行符
         newValue += i === rowArr.length - 1 ? rowArr[i] : rowArr[i] + '\n'
       }
 
-      // lrcArea.value = newValue
       this.lrc = newValue
 
       // 编辑框光标移至下一行开头
-      // lrcArea.setSelectionRange(formerPartLength + 1, formerPartLength + 1)
       ctlInput.focusInRowStart(lrcArea, this.editingRowNum)
       this.scrollEditor()
 
@@ -205,7 +271,6 @@ export default {
       }).then(() => {
         let lrcArea = document.querySelector('.lrc-editor textarea')
 
-        // lrcArea.value = lrcArea.value.replace(/\[[0-9]{1,2}\:[0-9]{1,2}\.[0-9]{1,2}\]{1,}/g, '')
         that.lrc = lrcArea.value.replace(/\[[0-9]{1,2}\:[0-9]{1,2}\.[0-9]{1,2}\]{1,}/g, '')
         lrcArea.setSelectionRange(0, 0)
 
@@ -223,7 +288,7 @@ export default {
     },
     scrollEditor () {
       let lrcArea = document.querySelector('.lrc-editor textarea')
-      // 当编辑到第八行，开始自动向上滚动当前行数-6个单位的行高(大概21)
+      // 当编辑到第八行，开始自动向上滚动当前行数减6个单位的行高(大概21)
       if (this.editingRowNum > 6) {
         lrcArea.scrollTop = (this.editingRowNum - 6) * 21
       } else {
@@ -250,7 +315,7 @@ export default {
           default:
             filename = '歌词.lrc'
         }
-        utils.genDownLoad(filename, this.lrc)
+        utils.genDownLoad(filename, this.lrc, 'text/plain')
       } else {
         this.$message({
           type: 'info',
@@ -259,9 +324,9 @@ export default {
       }
     },
     /**
-     * 根据父组件传递的歌曲设置信息设置 aPlayer 组件。previewing用于判定是否为预览模式。
+     * 根据父组件传递的歌曲设置信息设置 aPlayer 组件。
      */
-    getMusic (songSetting, previewing) {
+    getMusic () {
       let APIServer = conf.APIServer
       let that = this
       let music = {
@@ -269,12 +334,11 @@ export default {
         artist: '默认歌手',
         src: 'https://freepd.com/music/City%20Sunshine.mp3',
         pic: 'pics/default-cover.jpg',
-        lrc: previewing ? that.lrc : ''
+        lrc: this.previewing ? this.lrc : ''
       }
 
       // 修改showPlayer销毁播放器以便利用新数据重新创建
       this.showPlayer = false
-      // console.log('正在获取来自 ' + songSetting.source + ' 的歌曲信息')
 
       // 从歌曲网易云链接中提取歌曲id
       const getID = (link) => {
@@ -356,8 +420,8 @@ export default {
           })
       }
 
-      if (songSetting && songSetting.source) {
-        switch (songSetting.source) {
+      if (this.songSetting && this.songSetting.source) {
+        switch (this.songSetting.source) {
           case 'ncm': {
             // 如果是纯数字那么就认为是网易云id。否则认为是链接或者分享文字，先提取id，再设置音乐
             if (/^[0-9]*$/.test(this.songSetting.ncm)) {
@@ -386,18 +450,18 @@ export default {
             }
           }
           case 'linkfile': {
-            let linkFileInfo = songSetting.linkFileInfo
+            let linkFileInfo = this.songSetting.linkFileInfo
             if (linkFileInfo) {
               music.title = '网络文件'
               music.artist = '未知歌手'
               music.src = linkFileInfo
               music.pic = 'pics/linkfile-cover.png'
             }
-            that.showPlayer = true
+            this.showPlayer = true
             return music
           }
           case 'localfile': {
-            let localFileInfo = songSetting.localFileInfo
+            let localFileInfo = this.songSetting.localFileInfo
 
             if (localFileInfo) {
               music.src = localFileInfo
@@ -405,7 +469,7 @@ export default {
               music.artist = '未知歌手'
               console.log('得到本地文件链接：' + music.src)
             }
-            that.showPlayer = true
+            this.showPlayer = true
 
             return music
           }
