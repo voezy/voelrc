@@ -4,16 +4,17 @@
     <!-- 播放器容器 -->
     <div class="player-wrp">
       <aplayer
-      v-if="showPlayer"
-      :music="music"
-      :showLrc="true"
-      :volume="0.5"
-      ref="aplayer">
+         v-if="showPlayer"
+        :music="music"
+        :showLrc="true"
+        :volume="0.5"
+        ref="aplayer"
+      >
       </aplayer>
     </div>
 
     <!-- 编辑框和控制按钮组容器 -->
-    <div class="main-wrp">
+    <div class="main-wrp clearfix" @keyup.120="addTimestamp();">
       <!-- 歌词编辑框 -->
       <el-input
         class="lrc-editor"
@@ -43,7 +44,7 @@
                 type="success"
                 icon="el-icon-setting"
                 circle
-                @click="$emit('setting')"
+                @click="$emit('popup-setting')"
                ></el-button>
             </el-tooltip>
           </div>
@@ -70,7 +71,7 @@
               class="item"
               :disabled="isMobile()"
               effect="light"
-              content="添加时间戳并切换下一句"
+              content="添加时间戳并切换下一句(或f9键)"
               placement="right"
             >
               <el-button
@@ -148,7 +149,7 @@
           <el-button
             class="function-btn"
             round
-            @click="downloadLrc"
+            @click="downloadLrc();cancelAutoSave()"
           >
             保存
           </el-button>
@@ -173,10 +174,9 @@ export default {
       showPlayer: true,
       editingRowNum: 0, // 光标当前所在行。默认值其实没有影响，因为对编辑框的点击事件进行了监听，会自动计算光标所在行
       lrc: '',
-      previewing: false
+      previewing: false,
+      savingLrcTimer: {} // 定期保存歌词信息到本地存储
     }
-  },
-  watch: {
   },
   computed: {
     // 注意aplayer会对misic对象各个参数进行非空验证
@@ -191,6 +191,15 @@ export default {
   },
   components: {
     Aplayer
+  },
+  mounted () {
+    let that = this
+    // 尝试读取用户未保存的歌词信息
+    this.lrc = localStorage.editinglrc ? localStorage.editinglrc : ''
+    // 每隔3000毫秒保存用户正在编辑的歌词到本地存储
+    this.savingLrcTimer = setInterval(() => {
+      localStorage.editinglrc = that.lrc
+    }, 3000)
   },
   methods: {
     // 移动端将不显示按钮功能提示文字
@@ -323,6 +332,13 @@ export default {
         })
       }
     },
+    cancelAutoSave () {
+      // 用户点击保存按钮后，结束自动保存，清空存储内容和定时器。
+      // 在未点击保存时，有自动保存的功能。所以目前仅供特殊情况下的救急
+      localStorage.removeItem('editinglrc')
+      clearInterval(this.savingLrcTimer)
+      this.savingLrcTimer = {}
+    },
     /**
      * 根据父组件传递的歌曲设置信息设置 aPlayer 组件。
      */
@@ -381,7 +397,7 @@ export default {
         return axios.get(APIServer + '/music/url?id=' + id)
           .then(res => {
             try {
-              console.log('获取到歌曲的src url：' + res.data.data[0].url)
+              // console.log('获取到歌曲的src url：' + res.data.data[0].url)
               music.src = res.data.data[0].url
             } catch (err) {
               // console.log('未能获取歌曲链接')
@@ -487,128 +503,174 @@ export default {
 </script>
 
 <style lang="less" scoped>
-@makerHeight: 450px;
-@makerWidth: 500px;
-@mainWidth: 500px;
-@playerWidth: 450px;
-@playerHeight: 100px;
-@editorHeight: 300px;
-@editorWidth: 450px;
-@atPhoneEditorWidth: 255px;
-@funcBtnHeight: 50px;
-@ctrlBtnGroupHeight: 200px;
-@atPhoneMainWidth: 305px;
-// 歌词编辑组件容器
-.maker-wrp {
-  width: @makerWidth;
-  height: @makerHeight;
-  margin: 0 auto;
-}
-// 播放器容器
-.player-wrp {
-  width: 100%;
-  height: @playerHeight;
-}
-// 播放器
-.aplayer {
-  width: @playerWidth;
-  margin-left: 0;
-}
-// 编辑器和控制按钮主体容器
-.main-wrp {
-  width: @mainWidth;
-  height: @makerHeight - @playerHeight - @funcBtnHeight;
-}
-// 歌词编辑器
-.lrc-editor {
-  width: @editorWidth;
-  height: @editorHeight;
-  float: left;
-}
-// 保存等的功能按钮组外层容器
-.function-btn-container {
-  width: @makerWidth;
-  height: @funcBtnHeight;
-  clear: both;
-}
-// 保存等的功能按钮组尺寸和定位容器
-.function-btn-wrp {
-  width: 30%;
-  height: @funcBtnHeight;
-  box-sizing: border-box;
-  padding: 7px 35px;
-  float: left;
-}
-// 控制歌词按钮外层容器
-.ctrlbtn-wrp {
-  position: relative;
-  width: 50px;
-  height: @makerHeight - @playerHeight - @funcBtnHeight;
-  float: left;
-}
-// 歌词控制按钮组定位容器
-.ctrlbtn-pos-wrp {
-  position: absolute;
-  top: 50%;
-  width: 100%;
-  height: @ctrlBtnGroupHeight;
-  margin-top: -@ctrlBtnGroupHeight / 2;
-}
-// 控制按钮内层容器
-.ctrl-btn {
-  width: 100%;
-  height: 33%;
-  box-sizing: border-box;
-  padding: 12px 5px;
-}
-// 调出设置面板按钮
-.setting-btn {
-  display: none;
-}
-// For mobile phone.
-@media only screen and (max-width: 768px) {
-  // 歌词编辑组件容器
+@import '../styles/common.less';
+
+@media only screen and (min-width: @small-screen-width) {
+  @maker-wrp-height: 100%;  // 组件高度
+  @player-wrp-height: 21%;  // 播放器容器高度
+  @main-wrp-height: 69%;  // 中部容器高度
+  @funcbtn-container-height: 10%;  // 功能按钮外层容器
+  @lrc-editor-width: 89%;  // 编辑框宽度
+  @ctrlbtn-wrp-width: 11%;  // 歌词控制按钮容器宽度
+  // 最外层容器
   .maker-wrp {
-    width: @atPhoneMainWidth;
-    height: @makerHeight;
-    margin: 0 auto;
-  } // 播放器容器
+    height: @maker-wrp-height;
+  }
+  // 播放器容器
   .player-wrp {
-    width: 100%;
-    height: @playerHeight;
+    height: @player-wrp-height;
   }
-  // 播放器
-  .aplayer {
-    width: @playerWidth - 150px;
-    margin-left: 0;
-  }
-  // 编辑器和播放器主题
+  // 中部容器(编辑框及歌词控制按钮)
   .main-wrp {
-    width: @atPhoneMainWidth;
+    height: @main-wrp-height;
+    padding-left: 1rem;  // 为了减少编辑框位置的突兀
   }
-  // 歌词编辑器
+  // 功能按钮外层容器
+  .function-btn-container {
+    height: @funcbtn-container-height;
+  }
+  // 编辑框
   .lrc-editor {
-    width: @atPhoneEditorWidth;
-    height: @editorHeight;
+    height: 100%;
+    width: @lrc-editor-width;
+    float: left;
   }
-  // 歌词控制按钮外层容器
+  // 歌词控制按钮容器
   .ctrlbtn-wrp {
-    height: @makerHeight - @playerHeight - @funcBtnHeight;
+    height: 100%;
+    width: @ctrlbtn-wrp-width;
+    float: left;
+    display: flex;
+    align-items: center;
   }
-  // 控制按钮内层容器
+  // 功能按钮定位容器
+  .function-btn-wrp {
+    width: 33%;
+    float: left;
+    display: flex;
+    justify-content: space-around;
+  }
+  // 歌词控制按钮定位容器
+  .ctrlbtn-pos-wrp {
+    width: 100%;
+    height: 70%;
+    align-content: space-around;
+  }
+  // 歌词控制按钮
+  .ctrl-btn {
+    height: 33%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+  // 设置面板弹出按钮
+  .setting-btn {
+    display: none;
+  }
+}
+
+// 对于移动设备
+@media only screen and (max-width: @small-screen-width) {
+  @maker-wrp-height: 90%;  // 组件高度
+  @player-wrp-height: 20%;  // 播放器容器高度
+  @main-wrp-height: 60%;  // 中部容器高度
+  @funcbtn-container-height: (100% - @player-wrp-height - @main-wrp-height);  // 功能按钮外层容器
+  @lrc-editor-width: 84%;  // 编辑框宽度
+  @ctrlbtn-wrp-width: 16%;  // 歌词控制按钮容器宽度
+  // 最外层容器
+  .maker-wrp {
+    height: @maker-wrp-height;
+  }
+  // 播放器容器
+  .player-wrp {
+    height: @player-wrp-height;
+  }
+  // 中部容器(编辑框及歌词控制按钮)
+  .main-wrp {
+    height: @main-wrp-height;
+  }
+  // 编辑框
+  .lrc-editor {
+    height: 100%;
+    width: @lrc-editor-width;
+    float: left;
+  }
+  // 歌词控制按钮容器
+  .ctrlbtn-wrp {
+    height: 100%;
+    width: @ctrlbtn-wrp-width;
+    float: left;
+  }
+  // 歌词控制按钮组定位容器
+  .ctrlbtn-pos-wrp {
+    width: 100%;
+    height: 75%;
+    margin-top: 2rem;
+  }
+  // 歌词控制按钮
   .ctrl-btn {
     height: 25%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
   }
-  // 调出设置面板按钮
-  .setting-btn {
-    display: block;
-  } // 保存等的功能按钮组外层容器
+  // 功能按钮外层容器
   .function-btn-container {
-    width: @atPhoneMainWidth;
+    height: @funcbtn-container-height;
   }
-  // 保存等的功能按钮组尺寸和定位容器
+  // 功能按钮定位容器
   .function-btn-wrp {
-    padding: 7px 25px;
+    width: 33%;
+    float: left;
+    display: flex;
+    justify-content: space-around;
+  }
+}
+
+// 对于超小屏
+@media only screen and(max-width: @xs-screen-width - 10em) {
+  @maker-wrp-height: 100%;  // 组件高度
+  @player-wrp-height: 22%;  // 播放器容器高度
+  @main-wrp-height: 68%;  // 中部容器高度
+  @funcbtn-container-height: (100% - @player-wrp-height - @main-wrp-height);  // 功能按钮外层容器
+  @lrc-editor-width: 84%;  // 编辑框宽度
+  @ctrlbtn-wrp-width: 16%;  // 歌词控制按钮容器宽度
+  // 最外层容器
+  .maker-wrp {
+    height: @maker-wrp-height;
+  }
+  // 中部容器(编辑框及歌词控制按钮)
+  .main-wrp {
+    height: @main-wrp-height;
+  }
+  // 播放器容器
+  .player-wrp {
+    height: @player-wrp-height;
+  }
+    // 歌词控制按钮容器
+  .ctrlbtn-wrp {
+    height: 100%;
+    width: @ctrlbtn-wrp-width;
+    float: left;
+    display: flex;
+    align-items: center;
+  }
+  // 歌词控制按钮组定位容器
+  .ctrlbtn-pos-wrp {
+    width: 100%;
+    height: 70%;
+    margin-top: 0;
+  }
+  // 歌词控制按钮
+  .ctrl-btn {
+    height: 25%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+  // 功能按钮外层容器
+  .function-btn-container {
+    height: @funcbtn-container-height;
   }
 }
 </style>

@@ -91,43 +91,37 @@ export default {
 </script>
 
 <style lang="less" scoped>
-@wrpWidth: 500px;
-@wrpHeight: 450px;
-@ElInputWidth: 400px;
-@atPhoneWrpWidth: 99vw;
-@atPhoneHeight: 75vh;
-@atPhoneElInputWidth: 70vw;
-// 歌曲设置组件容器
-.setting-wrp {
-  position: relative;
-  width: @wrpWidth;
-  height: @wrpHeight;
-}
-// 歌曲设置选项卡
-.setting-tabs {
-  width: 99%;
-  height: 100%;
-}
-// 网易云链接设置面板和id设置面板
-.linkfile, .ncm {
-  width: @ElInputWidth;
-  margin: 50px auto;
-}
-// For mobile phone.
-@media only screen and (max-width: 767px) {
-  // 歌曲设置组件容器
-  .setting-wrp {
-    width: @atPhoneWrpWidth;
-    height: @atPhoneHeight;
-    margin: 0 auto;
+@import '../styles/common.less';
+
+// 对于pc等设备
+@media only screen and (min-width: @small-screen-width) {
+  @setting-wrp-width: 100%;  // 设置组件容器宽度
+  @setting-wrp-height: 100%;  // 设置组件容器高度
+  .setting-wrp, .setting-tabs {
+    width: @setting-wrp-width;
+    height: @setting-wrp-height;
+    //outline: 1px solid blue;
   }
-  // 网易云链接设置面板和id设置面板
-  .linkfile, .ncm {
-    width: @atPhoneElInputWidth;
+  .linkfile, .ncm, .localfile {
+    width: 100%;
+    height: 100%;
+    //outline: 1px solid red;
   }
-  // 文件链接设置组件
-  .linkfile {
-    margin: 5px auto;
+}
+
+// 对于移动设备
+@media screen and (max-width: @small-screen-width) {
+  @setting-wrp-width: 100%;  // 设置组件容器宽度
+  @setting-wrp-height: 100%;  // 设置组件容器高度
+  .setting-wrp, .setting-tabs {
+    width: @setting-wrp-width;
+    height: @setting-wrp-height;
+    //outline: 1px solid blue;
+  }
+  .linkfile, .ncm, .localfile {
+    width: 100%;
+    height: 100%;
+    //outline: 1px solid red;
   }
 }
 </style>
