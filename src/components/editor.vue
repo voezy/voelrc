@@ -427,6 +427,8 @@ export default {
               music.title = song.name
               music.artist = song.ar.length === 1 ? song.ar[0].name : song.ar.reduce(mergeAr)
               music.pic = song.al.picUrl
+
+              // console.log('专辑图片' + res.data.songs[0].al.picUrl)
             } catch (err) {
               // console.log('未能获取歌曲信息')
             }

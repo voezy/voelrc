@@ -1,7 +1,8 @@
 import Vue from 'vue'
 import App from '../App.vue'
 import 'element-ui/lib/theme-chalk/index.css'
-import NormalizeCSS from 'normalize.css'
+import VueRouter from 'vue-router'
+
 import {
   Button,
   Row,
@@ -42,6 +43,8 @@ Vue.use(Upload)
 Vue.prototype.$msgbox = MessageBox
 Vue.prototype.$confirm = MessageBox.confirm
 Vue.prototype.$message = Message
+
+Vue.use(VueRouter)
 
 let vm = new Vue({
   components: {

@@ -1,6 +1,7 @@
 <template>
   <!-- 主体外层容器 -->
   <div class="main-wrp clearfix">
+    <!-- slide动画用于移动端 -->
     <transition name="slide">
       <!-- 歌曲设置组件容器 -->
       <div class="main-setting" v-if="showSetting">

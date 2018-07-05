@@ -1,17 +1,20 @@
 import path from 'path'
-import webpack from 'webpack'
 import HtmlWebpackPlugin from 'html-webpack-plugin'
+import marked from 'marked'
 import {
   VueLoaderPlugin
 } from 'vue-loader'
 
+const renderer = new marked.Renderer()
+
 export default {
-  mode: 'development',
-  devtool: 'eval-source-map',
-  entry: path.join(__dirname, 'src/js/main.js'),
+  entry: {
+    main: path.join(__dirname, 'src/js/main.js'),
+    vendor: ['axios']
+  },
   output: {
     path: path.resolve(__dirname, 'build'),
-    filename: 'bundle.js'
+    filename: '[name].[hash].js'
   },
   module: {
     rules: [{
@@ -33,30 +36,27 @@ export default {
       options: {
         name: 'fonts/[name].[ext]'
       }
+    }, {
+      test: /\.md$/,
+      use: [{
+        loader: 'html-loader'
+      },
+      {
+        loader: 'markdown-loader',
+        options: {
+          pedantic: true,
+          renderer
+        }
+      }]
     }]
   },
   plugins: [
     new HtmlWebpackPlugin({
       template: 'src/index.html'
     }),
-    new VueLoaderPlugin(),
-    new webpack.HotModuleReplacementPlugin()
+    new VueLoaderPlugin()
   ],
   externals: 'hls.js', // Remove hls warning.
-  devServer: {
-    contentBase: './static',
-    host: '0.0.0.0',
-    disableHostCheck: true,
-    // 转发API接口请求
-    proxy: {
-      '/api/*': {
-        target: 'http://localhost:3000/',
-        pathRewrite: {'^/api': ''},
-        changeOrigin: true,
-        secure: false
-      }
-    }
-  },
   resolve: {
     alias: {
       'vue$': 'vue/dist/vue.esm.js'
