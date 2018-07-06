@@ -1,6 +1,6 @@
 # voeLrc
-这是一个用于制作lrc歌词的网页工具，可以通过网络文件、本地文件或者网易云链接来选择音乐来源，给歌词加上时间标签。    
-欢迎使用：[voeLrc](http://lrc.voezy.com)
+这是一个用于制作lrc歌词的网页工具，可以通过网络文件、本地文件、网易云歌曲链接或id等方式来选择音乐来源，给歌词加上时间标签。    
+欢迎使用：[voeLrc, 简洁易用的lrc编辑工具](http://lrc.voezy.com)
 
 ## 安装
 安装nodejs。    
@@ -29,4 +29,4 @@ yarn run dev
 欢迎提bug，提建议。
 
 ## 致谢
-[网易云音乐 Node.js API](https://github.com/Binaryify/NeteaseCloudMusicApi)，👍
+[网易云音乐 Node.js API](https://github.com/Binaryify/NeteaseCloudMusicApi)，棒👍
