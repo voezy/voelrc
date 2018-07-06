@@ -5,6 +5,7 @@ index.production.html
 static/*
 !default-cover.jpg
 !linkfile-cover.png
+.DS_Store
 
 # Logs
 logs
