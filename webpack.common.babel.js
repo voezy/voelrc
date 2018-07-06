@@ -1,5 +1,4 @@
 import path from 'path'
-import HtmlWebpackPlugin from 'html-webpack-plugin'
 import marked from 'marked'
 import {
   VueLoaderPlugin
@@ -51,9 +50,6 @@ export default {
     }]
   },
   plugins: [
-    new HtmlWebpackPlugin({
-      template: 'src/index.html'
-    }),
     new VueLoaderPlugin()
   ],
   externals: 'hls.js', // Remove hls warning.

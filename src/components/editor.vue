@@ -163,7 +163,6 @@
 import axios from 'axios'
 import Aplayer from 'vue-aplayer'
 import utils from '../js/util/utils.js'
-import conf from '../../config/conf.dev.js'
 Aplayer.disableVersionBadge = true // 不输出aplayer版本信息到控制台
 
 export default {
@@ -262,7 +261,7 @@ export default {
       this.lrc = newValue
 
       // 编辑框光标移至下一行开头
-      ctlInput.focusInRowStart(lrcArea, this.editingRowNum)
+      // ctlInput.focusInRowStart(lrcArea, this.editingRowNum)
       this.scrollEditor()
 
       // 因为光标已经移至下一行，所以光标所在当前行加1。（如果没到最后一行的话）
@@ -343,7 +342,7 @@ export default {
      * 根据父组件传递的歌曲设置信息设置 aPlayer 组件。
      */
     getMusic () {
-      let APIServer = conf.APIServer
+      let APIServer = '/api'
       let that = this
       let music = {
         title: '默认歌曲',
