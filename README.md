@@ -3,13 +3,13 @@
 欢迎使用：[voeLrc, 简洁易用的lrc编辑工具](http://lrc.voezy.com)
 
 ## 安装
-安装nodejs。    
+1 安装nodejs。    
 
-安装网易云音乐nodejs版API，详情请戳 [网易云音乐 Node.js API](https://github.com/Binaryify/NeteaseCloudMusicApi)。    
+2 安装网易云音乐nodejs版API，详情请戳 [网易云音乐 Node.js API](https://github.com/Binaryify/NeteaseCloudMusicApi)。    
 
-安装yarn，详情请戳[yarnpkg/yarn: 📦🐈 Fast, reliable, and secure dependency management.](https://github.com/yarnpkg/yarn)。    
+3 安装yarn，详情请戳[yarnpkg/yarn: 📦🐈 Fast, reliable, and secure dependency management.](https://github.com/yarnpkg/yarn)。    
 
-克隆项目到本地，然后安装依赖，
+4 克隆项目到本地，然后安装依赖，    
 ```
 git clone https://github.com/voezy/voelrc.git
 cd voelrc
@@ -29,4 +29,10 @@ yarn run dev
 欢迎提bug，提建议。
 
 ## 致谢
-[网易云音乐 Node.js API](https://github.com/Binaryify/NeteaseCloudMusicApi)，棒👍
+[APlayer](https://github.com/MoePlayer/APlayer),    
+
+[网易云音乐 Node.js API](https://github.com/Binaryify/NeteaseCloudMusicApi)，    
+
+[vue-APlayer](https://github.com/SevenOutman/vue-aplayer)    
+
+棒👍
