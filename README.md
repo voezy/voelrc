@@ -5,7 +5,7 @@
 ## 安装
 1 安装nodejs。    
 
-2 安装网易云音乐nodejs版API，详情请戳 [网易云音乐 Node.js API](https://github.com/Binaryify/NeteaseCloudMusicApi)。    
+2 安装网易云音乐nodejs版API，详情请戳 [网易云音乐 Node.js API](https://github.com/Binaryify/NeteaseCloudMusicApi)。没有安装这个的话，就只能通过本地歌曲或者歌曲下载链接来设置音乐来源。     
 
 3 安装yarn，详情请戳[yarnpkg/yarn: 📦🐈 Fast, reliable, and secure dependency management.](https://github.com/yarnpkg/yarn)。    
 

@@ -112,7 +112,7 @@ export default {
     position: relative;
     min-width: @main-wrp-width;
     min-height: @main-wrp-height;
-    margin: 0.8rem auto;
+    margin: 2rem auto 0;
   }
   // 设置组件容器
   .main-setting {

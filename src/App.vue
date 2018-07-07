@@ -4,7 +4,7 @@
     <section class="routes-wrp" v-show="!startMaking">
       <div class="intro">
         <h2>voeLrc</h2>
-        <p>简洁实用的lrc歌词编辑器</p>
+        <p>简洁易用的lrc歌词编辑器</p>
       </div>
 
       <div class="routes-btn-wrp">

@@ -7,7 +7,7 @@
 
     <el-form-item>
       <div class="submit-btn-s-wrp">
-        <el-button round @click="$emit('update-linkfile', newLinkFileInfo)">确定</el-button>
+        <el-button round @click="$emit('update-linkfile', linkFileInfo.link)">确定</el-button>
       </div>
     </el-form-item>
   </el-form>
@@ -20,11 +20,6 @@ export default {
       linkFileInfo: {
         link: ''
       }
-    }
-  },
-  computed: {
-    newLinkFileInfo () {
-      return this.linkFileInfo.link
     }
   }
 }

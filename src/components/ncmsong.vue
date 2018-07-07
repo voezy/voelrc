@@ -2,12 +2,12 @@
   <!-- 网易歌曲设置表单 -->
   <el-form :label-position="'left'" label-width="45px" :model="ncm" @submit.native.prevent>
     <el-form-item label="信息">
-      <el-input v-model="ncm.info" size="small" placeholder="可输入歌曲链接、ID或分享文字" @keyup.enter.native="$emit('update-ncmsong', newInfo)"></el-input>
+      <el-input v-model="ncm.info" size="small" placeholder="可输入歌曲链接、ID或分享文字" @keyup.enter.native="$emit('update-ncmsong', ncm.info)"></el-input>
     </el-form-item>
 
     <el-form-item>
       <div class="submit-btn-s-wrp">
-        <el-button round @click="$emit('update-ncmsong', newInfo)">确定</el-button>
+        <el-button round @click="$emit('update-ncmsong', ncm.info)">确定</el-button>
       </div>
     </el-form-item>
   </el-form>
@@ -20,11 +20,6 @@ export default {
       ncm: {
         info: ''
       }
-    }
-  },
-  computed: {
-    newInfo () {
-      return this.ncm.info
     }
   }
 }

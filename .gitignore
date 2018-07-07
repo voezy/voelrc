@@ -1,6 +1,7 @@
 build/*
 index.production.html
 .DS_Store
+404.html
 
 # Logs
 logs
